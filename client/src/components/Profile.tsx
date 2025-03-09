@@ -1,75 +1,106 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import axios from "axios";
+import { getAuth } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faCamera, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCamera, faSave, faSignOutAlt, faImage } from "@fortawesome/free-solid-svg-icons";
 import "../styles/Profile.css";
+import { httpService } from "../httpService";
+import { UserDetails } from "../App";
 
-interface UserProfile {
-  username: string;
-  email: string;
-  profilePicture?: string;
-  bio?: string;
+interface ProfileProps {
+  user: UserDetails;
+  isLoadingUser: boolean;
+  refetchUser: () => void;
+  signOut: () => void;
 }
 
-function Profile() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
+function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
+  const [editedProfile, setEditedProfile] = useState<UserDetails | null>(null);
+  console.log({ editedProfile });
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState({
+    username: "",
+    profilePicture: "",
+  });
+  interface Post {
+    id: string;
+    // Add other post properties here
+  }
+
+  const [posts, setPosts] = useState<Post[]>([]);
 
   const navigate = useNavigate();
   const auth = getAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, firebaseUser => {
-      if (firebaseUser) {
-        // User is signed in, fetch profile data
-        fetchUserProfile(firebaseUser.uid);
-      } else {
-        // User is signed out, redirect to login
-        navigate("/sign-up");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      setIsLoading(true);
-      const token = await auth.currentUser?.getIdToken();
-
-      const response = await axios.get(`http://localhost:3001/api/user/profile/${userId}`, {
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
-
-      setUser(response.data as UserProfile);
-      setEditedProfile(response.data as UserProfile);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      setError("Failed to load profile data");
-      setIsLoading(false);
+    if (isLoadingUser) {
+      return;
     }
+
+    if (user && user.email) {
+      // Use the user prop to fetch profile data
+      fetchUserPosts();
+      console.log("Current user:", user);
+    } else {
+      // If no user prop, redirect to login
+      navigate("/sign-up");
+    }
+  }, [user, navigate, isLoadingUser]);
+
+  const fetchUserPosts = async () => {
+    // This function will be implemented when you add posts functionality
+    // For now, we'll just set an empty array
+    setPosts([]);
+  };
+
+  const validateProfileData = (): boolean => {
+    let isValid = true;
+    const errors = {
+      username: "",
+      profilePicture: "",
+    };
+
+    // Validate username
+    if (!editedProfile?.username) {
+      errors.username = "Username is required";
+      isValid = false;
+    } else if (editedProfile.username.length < 3) {
+      errors.username = "Username must be at least 3 characters";
+      isValid = false;
+    } else if (editedProfile.username.length > 30) {
+      errors.username = "Username cannot exceed 30 characters";
+      isValid = false;
+    } else if (!/^[a-zA-Z0-9_.]+$/.test(editedProfile.username)) {
+      errors.username = "Username can only contain letters, numbers, underscores and periods";
+      isValid = false;
+    }
+
+    // Validate profile picture if one is selected
+    if (profilePictureFile) {
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!allowedTypes.includes(profilePictureFile.type)) {
+        errors.profilePicture = "Only JPEG, PNG, and GIF images are allowed";
+        isValid = false;
+      } else if (profilePictureFile.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        errors.profilePicture = "Image size cannot exceed 5MB";
+        isValid = false;
+      }
+    }
+
+    setValidationErrors(errors);
+    return isValid;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setProfilePictureFile(file);
+      setValidationErrors({ ...validationErrors, profilePicture: "" });
 
       // Create a preview URL
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
       reader.readAsDataURL(file);
     }
   };
@@ -81,15 +112,23 @@ function Profile() {
         ...editedProfile,
         [name]: value,
       });
+
+      if (name === "username") {
+        setValidationErrors({ ...validationErrors, username: "" });
+      }
     }
   };
 
   const handleSaveProfile = async () => {
     if (!editedProfile) return;
 
+    // Validate input before saving
+    if (!validateProfileData()) {
+      return;
+    }
+
     try {
-      const token = await auth.currentUser?.getIdToken();
-      const userId = auth.currentUser?.uid;
+      const userId = user._id;
 
       const profileData = { ...editedProfile };
 
@@ -98,9 +137,8 @@ function Profile() {
         const formData = new FormData();
         formData.append("profilePicture", profilePictureFile);
 
-        const uploadResponse = await axios.post<{ imageUrl: string }>(`http://localhost:3001/api/user/upload-profile-picture/${userId}`, formData, {
+        const uploadResponse = await httpService.post<{ imageUrl: string }>(`http://localhost:3001/api/user/upload-profile-picture/${userId}`, formData, {
           headers: {
-            Authorization: `${token}`,
             "Content-Type": "multipart/form-data",
           },
         });
@@ -110,116 +148,131 @@ function Profile() {
       }
 
       // Update the user profile
-      await axios.put(`http://localhost:3001/api/user/update-profile/${userId}`, profileData, {
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
+      const updateResponse = await httpService.put(`http://localhost:3001/api/user/update-profile/${userId}`, profileData);
 
-      // Update the local state
-      setUser(profileData);
-      setIsEditing(false);
+      console.log("Profile updated:", updateResponse.data);
+
+      setEditedProfile(null);
       setError("");
-    } catch (error) {
+      refetchUser();
+    } catch (error: unknown) {
       console.error("Error updating profile:", error);
-      setError("Failed to update profile");
+      if (error instanceof Error) {
+        setError(`Failed to update profile: ${error.message}`);
+      } else {
+        setError("Failed to update profile: Unknown error");
+      }
     }
   };
 
   const toggleEditMode = () => {
-    if (isEditing) {
+    if (editedProfile) {
       // Cancel editing - reset to original values
-      setEditedProfile(user);
-      setPreviewUrl(null);
       setProfilePictureFile(null);
-    }
-    setIsEditing(!isEditing);
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut();
-      navigate("/sign-up");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      setError("Failed to sign out");
+      setValidationErrors({ username: "", profilePicture: "" });
+    } else {
+      setEditedProfile(user);
     }
   };
 
-  if (isLoading) {
+  if (isLoadingUser) {
     return <div className='loading-container'>Loading profile...</div>;
   }
 
   return (
-    <div className='profile-container'>
+    <div className='profile-page'>
+      {/* Profile Header Section */}
       <div className='profile-header'>
-        <h1>User Profile</h1>
-        <div className='profile-actions'>
-          <button className='btn' onClick={toggleEditMode}>
-            <FontAwesomeIcon icon={isEditing ? faSave : faEdit} />
-            {isEditing ? " Cancel" : " Edit Profile"}
-          </button>
-          <button className='btn logout-btn' onClick={handleSignOut}>
-            Sign Out
-          </button>
+        <div className='profile-container'>
+          <div className='profile-content'>
+            <div className='profile-picture-container'>
+              {editedProfile ? (
+                <>
+                  <div className='profile-picture-edit'>
+                    <img src={user.profilePicture} alt='Profile2' className='profile-picture' />
+                    <label className='profile-picture-upload'>
+                      <FontAwesomeIcon icon={faCamera} />
+                      <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
+                    </label>
+                  </div>
+                  {validationErrors.profilePicture && <div className='validation-error'>{validationErrors.profilePicture}</div>}
+                </>
+              ) : (
+                <img src={user.profilePicture} alt='Profile' className='profile-picture' />
+              )}
+            </div>
+
+            <div className='profile-details'>
+              <div className='profile-title'>
+                <h1>{user?.username}</h1>
+                <div className='profile-actions'>
+                  <button className='btn edit-btn' onClick={toggleEditMode}>
+                    <FontAwesomeIcon icon={editedProfile ? faSave : faEdit} />
+                    {editedProfile ? " Cancel" : " Edit Profile"}
+                  </button>
+                  <button className='btn logout-btn' onClick={signOut}>
+                    <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
+                  </button>
+                </div>
+              </div>
+
+              {error && <div className='error-message'>{error}</div>}
+
+              {editedProfile ? (
+                <div className='profile-form'>
+                  <div className='form-group'>
+                    <label>Username</label>
+                    <input type='text' name='username' value={editedProfile?.username || ""} onChange={handleInputChange} className={validationErrors.username ? "error" : ""} />
+                    {validationErrors.username && <div className='validation-error'>{validationErrors.username}</div>}
+                  </div>
+                  {/* <div className='form-group'>
+                    <label>Bio</label>
+                    <textarea name='bio' value={editedProfile?.bio || ""} onChange={handleInputChange} rows={4} placeholder='Write something about yourself...' />
+                  </div> */}
+                  <button className='btn save-btn' onClick={handleSaveProfile}>
+                    <FontAwesomeIcon icon={faSave} /> Save Changes
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className='profile-info'>
+                    {user?.bio ? (
+                      <div className='bio'>
+                        <h3>Bio</h3>
+                        <p>{user?.bio}</p>
+                      </div>
+                    ) : (
+                      <div className='bio'>
+                        <p className='empty-bio'>No bio yet</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {error && <div className='error-message'>{error}</div>}
-
-      <div className='profile-content'>
-        <div className='profile-picture-container'>
-          {isEditing ? (
-            <>
-              <div className='profile-picture-edit'>
-                <img src={previewUrl || editedProfile?.profilePicture || "/img/default-profile.png"} alt='Profile' className='profile-picture' />
-                <label className='profile-picture-upload'>
-                  <FontAwesomeIcon icon={faCamera} />
-                  <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
-                </label>
+      {/* Posts Section */}
+      <div className='profile-posts-section'>
+        <div className='profile-container'>
+          <h2>
+            <FontAwesomeIcon icon={faImage} /> My Posts
+          </h2>
+          <div className='posts-grid'>
+            {posts.length > 0 ? (
+              posts.map(post => (
+                <div className='post-item' key={post.id}>
+                  {/* This will be filled when you implement posts */}
+                </div>
+              ))
+            ) : (
+              <div className='empty-posts'>
+                <p>No posts yet</p>
               </div>
-            </>
-          ) : (
-            <img src={user?.profilePicture || "/img/default-profile.png"} alt='Profile' className='profile-picture' />
-          )}
-        </div>
-
-        <div className='profile-details'>
-          {isEditing ? (
-            <div className='profile-form'>
-              <div className='form-group'>
-                <label>Username</label>
-                <input type='text' name='username' value={editedProfile?.username || ""} onChange={handleInputChange} />
-              </div>
-              <div className='form-group'>
-                <label>Email</label>
-                <input type='email' name='email' value={editedProfile?.email || ""} onChange={handleInputChange} disabled />
-                <small>Email cannot be changed</small>
-              </div>
-              <div className='form-group'>
-                <label>Bio</label>
-                <textarea name='bio' value={editedProfile?.bio || ""} onChange={handleInputChange} rows={4} />
-              </div>
-              <button className='btn save-btn' onClick={handleSaveProfile}>
-                <FontAwesomeIcon icon={faSave} /> Save Changes
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className='profile-info'>
-                <h2>{user?.username}</h2>
-                <p>
-                  <strong>Email:</strong> {user?.email}
-                </p>
-                {user?.bio && (
-                  <div className='bio'>
-                    <h3>Bio</h3>
-                    <p>{user?.bio}</p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
