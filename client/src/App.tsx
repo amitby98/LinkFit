@@ -8,7 +8,6 @@ import SignUp from "./components/SignUp";
 import HomePage from "./components/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
-import ExercisesList from "./components/ExercisesList";
 import Profile from "./components/Profile";
 import Feed from "./components/Feed";
 import ExercisesList from "./components/ExercisesList";
@@ -96,15 +95,11 @@ function App() {
 
   return (
     <div>
-      <nav>
-        <a href='/exercises'>📋 אימונים קצרים</a>
-      </nav>
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
           <Route path='/' element={<Check user={firebaseUser} loading={loading} registered={registered} />} />
           <Route path='/exercises' element={<ExercisesList />} />
 
-          {/* User authentication routes */}
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
@@ -120,7 +115,6 @@ function App() {
   );
 }
 
-// Corrected Check component
 interface CheckProps {
   user: User | null | undefined;
   loading: boolean;
