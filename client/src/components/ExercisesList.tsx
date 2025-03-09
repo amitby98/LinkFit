@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import NavBar from "./NavBar";
 
 const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
 
@@ -25,6 +26,7 @@ const ExercisesList: React.FC = () => {
 
   return (
     <>
+      <NavBar />
       <h2>🔥 אימונים קצרים</h2>
       <select onChange={e => setMuscle(e.target.value)} value={muscle}>
         {muscleGroups.map((group, index) => (
