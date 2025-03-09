@@ -41,12 +41,9 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 
-////////////////////////
-console.log("🔑 API Key Loaded:", process.env.EXERCISEDB_API_KEY);
-
+///////////////////
 app.get("/api/exercises/:muscle", async (req: Request, res: Response) => {
   const muscle = req.params.muscle;
-  console.log(`📡 Fetching exercises for: ${muscle}`); // לוודא שהפרמטר נכון
 
   try {
     const response = await axios.get(`${API_URL}/${muscle}`, {
@@ -56,7 +53,7 @@ app.get("/api/exercises/:muscle", async (req: Request, res: Response) => {
       },
     });
 
-    res.json(response.data); // מחזיר רשימת אימונים ל-Frontend
+    res.json(response.data);
   } catch (error) {
     console.error("Error fetching exercises:", error);
     res.status(500).json({ error: "שגיאה בקבלת הנתונים מה-API" });

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
+
 interface Exercise {
   name: string;
   equipment: string;
@@ -8,7 +10,7 @@ interface Exercise {
 }
 
 const ExercisesList: React.FC = () => {
-  const [muscle, setMuscle] = useState<string>("cardio"); // קבוצת שרירים ברירת מחדל
+  const [muscle, setMuscle] = useState<string>("cardio");
   const [exercises, setExercises] = useState<Exercise[]>([]);
 
   const fetchExercises = async () => {
@@ -17,18 +19,21 @@ const ExercisesList: React.FC = () => {
       setExercises(response.data as Exercise[]);
       console.log(response.data);
     } catch (error) {
-      console.error("שגיאה בקבלת האימונים:", error);
+      console.error("❌ שגיאה בקבלת האימונים:", error);
     }
   };
 
   return (
     <>
       <h2>🔥 אימונים קצרים</h2>
-      <select onChange={e => setMuscle(e.target.value)}>
-        <option value='cardio'>cardio</option>
-        <option value='chest'>חזה</option>
-        <option value='back'>גב</option>
+      <select onChange={e => setMuscle(e.target.value)} value={muscle}>
+        {muscleGroups.map((group, index) => (
+          <option key={index} value={group}>
+            {group}
+          </option>
+        ))}
       </select>
+
       <button onClick={fetchExercises}>קבל אימונים</button>
 
       <ul>
