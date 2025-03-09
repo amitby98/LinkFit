@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faCamera, faSave, faSignOutAlt, faImage } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCamera, faSave, faImage } from "@fortawesome/free-solid-svg-icons";
 import "../styles/Profile.css";
 import { httpService } from "../httpService";
 import { UserDetails } from "../App";
+import NavBar from "./NavBar";
 
 interface ProfileProps {
   user: UserDetails | undefined;
@@ -14,7 +15,7 @@ interface ProfileProps {
   signOut: () => void;
 }
 
-function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
+function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [editedProfile, setEditedProfile] = useState<UserDetails | null>(null);
   console.log({ editedProfile });
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
@@ -168,8 +169,10 @@ function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
   const toggleEditMode = () => {
     if (editedProfile) {
       // Cancel editing - reset to original values
+      setEditedProfile(null); // This is the key fix - explicitly set to null
       setProfilePictureFile(null);
       setValidationErrors({ username: "", profilePicture: "" });
+      setError(""); // Clear any error messages
     } else {
       setEditedProfile(user!);
     }
@@ -180,102 +183,107 @@ function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
   }
 
   return (
-    <div className='profile-page'>
-      {/* Profile Header Section */}
-      <div className='profile-header'>
-        <div className='profile-container'>
-          <div className='profile-content'>
-            <div className='profile-picture-container'>
-              {editedProfile ? (
-                <>
-                  <div className='profile-picture-edit'>
-                    <img src={user?.profilePicture} alt='Profile2' className='profile-picture' />
-                    <label className='profile-picture-upload'>
-                      <FontAwesomeIcon icon={faCamera} />
-                      <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
-                    </label>
-                  </div>
-                  {validationErrors.profilePicture && <div className='validation-error'>{validationErrors.profilePicture}</div>}
-                </>
-              ) : (
-                <img src={user?.profilePicture} alt='Profile' className='profile-picture' />
-              )}
-            </div>
-
-            <div className='profile-details'>
-              <div className='profile-title'>
-                <h1>{user?.username}</h1>
-                <div className='profile-actions'>
-                  <button className='btn edit-btn' onClick={toggleEditMode}>
-                    <FontAwesomeIcon icon={editedProfile ? faSave : faEdit} />
-                    {editedProfile ? " Cancel" : " Edit Profile"}
-                  </button>
-                  <button className='btn logout-btn' onClick={signOut}>
-                    <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
-                  </button>
-                </div>
+    <>
+      <NavBar />
+      <div className='profile-page'>
+        {/* Profile Header Section */}
+        <div className='profile-header'>
+          <div className='profile-container'>
+            <div className='profile-content'>
+              <div className='profile-picture-container'>
+                {editedProfile ? (
+                  <>
+                    <div className='profile-picture-edit'>
+                      <img src={user?.profilePicture} alt='Profile2' className='profile-picture' />
+                      <label className='profile-picture-upload'>
+                        <FontAwesomeIcon icon={faCamera} />
+                        <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
+                      </label>
+                    </div>
+                    {validationErrors.profilePicture && <div className='validation-error'>{validationErrors.profilePicture}</div>}
+                  </>
+                ) : (
+                  <img src={user?.profilePicture} alt='Profile' className='profile-picture' />
+                )}
               </div>
 
-              {error && <div className='error-message'>{error}</div>}
-
-              {editedProfile ? (
-                <div className='profile-form'>
-                  <div className='form-group'>
-                    <label>Username</label>
-                    <input type='text' name='username' value={editedProfile?.username || ""} onChange={handleInputChange} className={validationErrors.username ? "error" : ""} />
-                    {validationErrors.username && <div className='validation-error'>{validationErrors.username}</div>}
+              <div className='profile-details'>
+                <div className='profile-title'>
+                  <h1>{user?.username}</h1>
+                  <div className='profile-actions'>
+                    {editedProfile ? (
+                      <button className='btn edit-btn' onClick={toggleEditMode}>
+                        <FontAwesomeIcon icon={faSave} /> Cancel
+                      </button>
+                    ) : (
+                      <button className='btn edit-btn' onClick={toggleEditMode}>
+                        <FontAwesomeIcon icon={faEdit} /> Edit Profile
+                      </button>
+                    )}
                   </div>
-                  {/* <div className='form-group'>
+                </div>
+
+                {error && <div className='error-message'>{error}</div>}
+
+                {editedProfile ? (
+                  <div className='profile-form'>
+                    <div className='form-group'>
+                      <label>Username</label>
+                      <input type='text' name='username' value={editedProfile?.username || ""} onChange={handleInputChange} className={validationErrors.username ? "error" : ""} />
+                      {validationErrors.username && <div className='validation-error'>{validationErrors.username}</div>}
+                    </div>
+                    {/* <div className='form-group'>
                     <label>Bio</label>
                     <textarea name='bio' value={editedProfile?.bio || ""} onChange={handleInputChange} rows={4} placeholder='Write something about yourself...' />
                   </div> */}
-                  <button className='btn save-btn' onClick={handleSaveProfile}>
-                    <FontAwesomeIcon icon={faSave} /> Save Changes
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className='profile-info'>
-                    {user?.bio ? (
-                      <div className='bio'>
-                        <h3>Bio</h3>
-                        <p>{user?.bio}</p>
-                      </div>
-                    ) : (
-                      <div className='bio'>
-                        <p className='empty-bio'>No bio yet</p>
-                      </div>
-                    )}
+                    <button className='btn save-btn' onClick={handleSaveProfile}>
+                      <FontAwesomeIcon icon={faSave} /> Save Changes
+                    </button>
                   </div>
-                </>
+                ) : (
+                  <>
+                    <div className='profile-info'>
+                      {user?.bio ? (
+                        <div className='bio'>
+                          <h3>Bio</h3>
+                          <p>{user?.bio}</p>
+                        </div>
+                      ) : (
+                        <div className='bio'>
+                          <p className='empty-bio'>No bio yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Posts Section */}
+        <div className='profile-posts-section'>
+          <div className='profile-container'>
+            <h2>
+              <FontAwesomeIcon icon={faImage} /> My Posts
+            </h2>
+            <div className='posts-grid'>
+              {posts.length > 0 ? (
+                posts.map(post => (
+                  <div className='post-item' key={post.id}>
+                    {/* This will be filled when you implement posts */}
+                  </div>
+                ))
+              ) : (
+                <div className='empty-posts'>
+                  <p>No posts yet</p>
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Posts Section */}
-      <div className='profile-posts-section'>
-        <div className='profile-container'>
-          <h2>
-            <FontAwesomeIcon icon={faImage} /> My Posts
-          </h2>
-          <div className='posts-grid'>
-            {posts.length > 0 ? (
-              posts.map(post => (
-                <div className='post-item' key={post.id}>
-                  {/* This will be filled when you implement posts */}
-                </div>
-              ))
-            ) : (
-              <div className='empty-posts'>
-                <p>No posts yet</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 

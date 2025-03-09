@@ -9,6 +9,8 @@ import HomePage from "./components/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
 import Profile from "./components/Profile";
+import Feed from "./components/Feed";
+import ExercisesList from "./components/ExercisesList";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdZM4I2vlLtKPzIdl810TiFE5UxI6PJ30",
@@ -69,8 +71,7 @@ function App() {
         setIsLoadingUser(false);
       })
       .catch(err => {
-        // setErrorMessage(err.response?.data || "Error checking user status");
-        setIsLoadingUser(false);
+        setErrorMessage(err.response?.data || "Error checking user status");
       });
   };
 
@@ -80,7 +81,6 @@ function App() {
     }
   }, [firebaseUser, loading, reqDone]);
 
-  // Separate useEffect for error message timer
   useEffect(() => {
     if (errorMessage) {
       setTimeout(() => {
@@ -103,21 +103,8 @@ function App() {
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
-
-          {/* Add the details route */}
-          <Route path='/details' element={firebaseUser ? <SignUp setReqDone={setReqDone} /> : <Navigate to='/' />} />
-
-          {/* Dashboard route */}
-          <Route
-            path='/dashboard'
-            element={
-              firebaseUser && registered ? (
-                <div>Dashboard Page</div> // Replace with actual dashboard component
-              ) : (
-                <Navigate to='/' />
-              )
-            }
-          />
+          <Route path='/dashboard' element={<Feed />} />
+          <Route path='/exercises' element={<ExercisesList />} />
 
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
@@ -149,7 +136,7 @@ function Check({ user, loading, registered }: CheckProps) {
   }
 
   if (registered === false) {
-    return <Navigate to='/profile' />;
+    return <Navigate to='/details' />;
   }
 
   return <Navigate to='/dashboard' />;
