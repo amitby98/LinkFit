@@ -1,21 +1,14 @@
 import "./styles/App.css";
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth, User } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
-import axios from "axios";
 import SignUp from "./components/SignUp";
 import HomePage from "./components/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
-
-// Define UserType enum
-export enum UserType {
-  Regular = "regular",
-  Admin = "admin",
-  Partner = "partner",
-}
+import Profile from "./components/Profile";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdZM4I2vlLtKPzIdl810TiFE5UxI6PJ30",
@@ -31,37 +24,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Define types for user-related state
-interface UserDetails {
-  name?: string;
-  email?: string;
-}
-
-interface ApiResponse {
-  type: UserType;
-  valid: boolean;
-  details: UserDetails;
+export interface UserDetails {
+  username: string;
+  bio?: string;
+  email: string;
+  profilePicture: string;
+  _id: string;
 }
 
 function App() {
   const [firebaseUser, loading] = useAuthState(auth);
   const [registered, setRegistered] = useState<boolean | undefined>(undefined);
-  const [userType, setUserType] = useState<UserType>(UserType.Regular); // Added state for userType
   const [reqDone, setReqDone] = useState(true);
   const [alertMessage, setAlertMessage] = useState<string | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-  const [user, setUser] = useState<UserDetails>({});
-  console.log(user);
-
-  // function signOut(navigate) {
-  //   auth.signOut().then(() => {
-  //     onAuthStateChanged(auth, () => {
-  //       setRegistered(undefined);
-  //       setReqDone(false);
-  //       navigate("/");
-  //     });
-  //   });
-  // }
+  const [user, setUser] = useState<UserDetails | undefined>(undefined);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (alertMessage) {
@@ -71,16 +50,33 @@ function App() {
     }
   }, [alertMessage]);
 
+  const signOut = async () => {
+    try {
+      await auth.signOut();
+      navigate("/sign-up");
+      localStorage.removeItem("token");
+      setUser(undefined);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const refetchUser = () => {
+    httpService
+      .get<UserDetails>(`/auth/check`)
+      .then(({ data }) => {
+        setUser(data);
+        setIsLoadingUser(false);
+      })
+      .catch(err => {
+        // setErrorMessage(err.response?.data || "Error checking user status");
+        setIsLoadingUser(false);
+      });
+  };
+
   useEffect(() => {
     if (reqDone) {
-      httpService
-        .get<ApiResponse>(`/auth/check`)
-        .then(({ data }) => {
-          setUser(data);
-        })
-        .catch(err => {
-          // setErrorMessage(err.response?.data || "Error checking user status");
-        });
+      refetchUser();
     }
   }, [firebaseUser, loading, reqDone]);
 
@@ -99,34 +95,33 @@ function App() {
 
   return (
     <div>
-      <Router>
-        <SetErrorContext.Provider value={setErrorMessage}>
-          <Routes>
-            <Route path='/' element={<Check user={firebaseUser} loading={loading} registered={registered} userType={userType} />} />
+      <SetErrorContext.Provider value={setErrorMessage}>
+        <Routes>
+          <Route path='/' element={<Check user={firebaseUser} loading={loading} registered={registered} />} />
 
-            {/* User authentication routes */}
-            <Route path='/home' element={<HomePage />} />
-            <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
+          {/* User authentication routes */}
+          <Route path='/home' element={<HomePage />} />
+          <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
+          <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
 
-            {/* Add the details route */}
-            <Route path='/details' element={firebaseUser ? <SignUp setReqDone={setReqDone} /> : <Navigate to='/' />} />
+          {/* Add the details route */}
+          <Route path='/details' element={firebaseUser ? <SignUp setReqDone={setReqDone} /> : <Navigate to='/' />} />
 
-            {/* Dashboard route */}
-            <Route
-              path='/dashboard'
-              element={
-                firebaseUser && registered ? (
-                  <div>Dashboard Page</div> // Replace with actual dashboard component
-                ) : (
-                  <Navigate to='/' />
-                )
-              }
-            />
+          {/* Dashboard route */}
+          <Route
+            path='/dashboard'
+            element={
+              firebaseUser && registered ? (
+                <div>Dashboard Page</div> // Replace with actual dashboard component
+              ) : (
+                <Navigate to='/' />
+              )
+            }
+          />
 
-            <Route path='*' element={<Navigate to='/' />} />
-          </Routes>
-        </SetErrorContext.Provider>
-      </Router>
+          <Route path='*' element={<Navigate to='/' />} />
+        </Routes>
+      </SetErrorContext.Provider>
       {alertMessage && <div className='alert-message alert-popup'>{alertMessage}</div>}
       {errorMessage && <div className='error-message alert-popup'>{errorMessage}</div>}
     </div>
@@ -138,7 +133,6 @@ interface CheckProps {
   user: User | null | undefined;
   loading: boolean;
   registered: boolean | undefined;
-  userType: UserType;
 }
 
 function Check({ user, loading, registered }: CheckProps) {
@@ -155,7 +149,7 @@ function Check({ user, loading, registered }: CheckProps) {
   }
 
   if (registered === false) {
-    return <Navigate to='/details' />;
+    return <Navigate to='/profile' />;
   }
 
   return <Navigate to='/dashboard' />;

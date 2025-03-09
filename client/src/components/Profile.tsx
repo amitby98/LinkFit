@@ -8,7 +8,7 @@ import { httpService } from "../httpService";
 import { UserDetails } from "../App";
 
 interface ProfileProps {
-  user: UserDetails;
+  user: UserDetails | undefined;
   isLoadingUser: boolean;
   refetchUser: () => void;
   signOut: () => void;
@@ -128,7 +128,7 @@ function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
     }
 
     try {
-      const userId = user._id;
+      const userId = user!._id;
 
       const profileData = { ...editedProfile };
 
@@ -171,7 +171,7 @@ function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
       setProfilePictureFile(null);
       setValidationErrors({ username: "", profilePicture: "" });
     } else {
-      setEditedProfile(user);
+      setEditedProfile(user!);
     }
   };
 
@@ -189,7 +189,7 @@ function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
               {editedProfile ? (
                 <>
                   <div className='profile-picture-edit'>
-                    <img src={user.profilePicture} alt='Profile2' className='profile-picture' />
+                    <img src={user?.profilePicture} alt='Profile2' className='profile-picture' />
                     <label className='profile-picture-upload'>
                       <FontAwesomeIcon icon={faCamera} />
                       <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
@@ -198,7 +198,7 @@ function Profile({ user, isLoadingUser, refetchUser, signOut }: ProfileProps) {
                   {validationErrors.profilePicture && <div className='validation-error'>{validationErrors.profilePicture}</div>}
                 </>
               ) : (
-                <img src={user.profilePicture} alt='Profile' className='profile-picture' />
+                <img src={user?.profilePicture} alt='Profile' className='profile-picture' />
               )}
             </div>
 
