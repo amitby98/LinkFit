@@ -9,7 +9,7 @@ import HomePage from "./components/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
 import Profile from "./components/Profile";
-import Feed from "./components/Feed";
+import { Feed } from "./components/Feed";
 import ExercisesList from "./components/ExercisesList";
 
 const firebaseConfig = {
