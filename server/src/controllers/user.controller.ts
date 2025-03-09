@@ -6,7 +6,7 @@ import path from "path";
 export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     // Ensure the user is accessing their own profile
-    const userId = req.body.user.id;
+    const userId = req.user.id;
 
     const user = await User.findById(userId).select("-password");
 
@@ -28,7 +28,7 @@ export const updateUserProfile = async (req: Request, res: Response): Promise<vo
     const { username, bio, profilePicture } = req.body;
 
     // Ensure the user is updating their own profile
-    if (req.body.user.id !== userId) {
+    if (req.user.id !== userId) {
       res.status(403).json({ message: "Not authorized to update this profile" });
       return;
     }
@@ -60,7 +60,7 @@ export const uploadProfilePicture = async (req: Request, res: Response): Promise
     const { userId } = req.params;
 
     // Ensure the user is updating their own profile
-    if (req.body.user.id !== userId) {
+    if (req.user.id !== userId) {
       res.status(403).json({ message: "Not authorized to update this profile" });
       return;
     }
@@ -73,10 +73,12 @@ export const uploadProfilePicture = async (req: Request, res: Response): Promise
 
     // Get the file path
     const filePath = req.file.path;
+    console.log({ filePath, basename: path.basename(filePath) });
+    const fileName = path.basename(filePath);
 
     // Create a public URL for the file
     const baseUrl = process.env.BASE_URL || "http://localhost:3001";
-    const imageUrl = `${baseUrl}/${filePath.replace(/\\/g, "/")}`;
+    const imageUrl = `${baseUrl}/profile-pictures/${fileName}`;
 
     // Update the user's profile picture in the database
     const user = await User.findById(userId);

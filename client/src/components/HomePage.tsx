@@ -8,7 +8,7 @@ import "../styles/HomePage.css";
 import homeVideo from "../pics/homeVideo.mp4";
 import logo from "../pics/logo.png";
 
-function HomePage() {
+const HomePage = () => {
   const [click, setClick] = useState(false);
   const handleClick = () => setClick(!click);
   const closeMobileMenu = () => setClick(false);
@@ -105,6 +105,6 @@ function HomePage() {
       </div>
     </>
   );
-}
+};
 
 export default HomePage;

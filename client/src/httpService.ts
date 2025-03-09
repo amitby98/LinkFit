@@ -1,5 +1,3 @@
-/// initalize axios instance and add token from localstorage
-
 import axios from "axios";
 
 export const httpService = axios.create({

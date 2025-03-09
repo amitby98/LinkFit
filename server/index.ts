@@ -23,6 +23,9 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+// serve static files
+app.use(express.static("uploads"));
 
 app.get("/", (req: Request, res: Response) => {
   res.status(200).send({ message: "LinkFit API is running", status: "ok" });
