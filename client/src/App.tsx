@@ -138,8 +138,6 @@ function Check({ user, loading, registered }: CheckProps) {
   if (registered === false) {
     return <Navigate to='/details' />;
   }
-
-  return <Navigate to='/dashboard' />;
 }
 
 export default App;
