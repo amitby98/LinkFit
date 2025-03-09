@@ -34,6 +34,7 @@ const UserSchema: Schema = new Schema<IUser>(
     },
     profilePicture: {
       type: String,
+      default: "/avatar.webp",
     },
     bio: {
       type: String,
