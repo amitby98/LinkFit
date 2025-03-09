@@ -1,8 +1,11 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
-import connectDB from "./src/config/db";
+import axios from "axios";
+import connectDB from "./src/config/db.ts";
 import { authRouter } from "./src/routes/auth.router";
 import { userRouter } from "./src/routes/user.router";
+const API_URL = "https://exercisedb.p.rapidapi.com/exercises/bodyPart";
+const API_KEY = process.env.EXERCISEDB_API_KEY as string;
 
 //Load environment variables
 require("dotenv").config();
@@ -37,6 +40,26 @@ app.use("/uploads", express.static("uploads"));
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+
+///////////////////
+app.get("/api/exercises/:muscle", async (req: Request, res: Response) => {
+  const muscle = req.params.muscle;
+
+  try {
+    const response = await axios.get(`${API_URL}/${muscle}`, {
+      headers: {
+        "X-RapidAPI-Key": API_KEY,
+        "X-RapidAPI-Host": "exercisedb.p.rapidapi.com",
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error fetching exercises:", error);
+    res.status(500).json({ error: "שגיאה בקבלת הנתונים מה-API" });
+  }
+});
+////////////////////////
 
 // Start Express server
 app.listen(app.get("port"), () => {
