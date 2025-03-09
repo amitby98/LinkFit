@@ -8,6 +8,7 @@ import SignUp from "./components/SignUp";
 import HomePage from "./components/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
+import ExercisesList from "./components/ExercisesList";
 import Profile from "./components/Profile";
 
 const firebaseConfig = {
@@ -95,9 +96,13 @@ function App() {
 
   return (
     <div>
+      <nav>
+        <a href='/exercises'>📋 אימונים קצרים</a>
+      </nav>
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
           <Route path='/' element={<Check user={firebaseUser} loading={loading} registered={registered} />} />
+          <Route path='/exercises' element={<ExercisesList />} />
 
           {/* User authentication routes */}
           <Route path='/home' element={<HomePage />} />
