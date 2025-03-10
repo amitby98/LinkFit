@@ -9,7 +9,7 @@ import HomePage from "./components/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
 import Profile from "./components/Profile";
-import Feed from "./components/Feed";
+import Dashboard from "./components/Dashboard";
 import ExercisesList from "./components/ExercisesList";
 
 const firebaseConfig = {
@@ -103,8 +103,9 @@ function App() {
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
-          <Route path='/dashboard' element={<Feed />} />
+          <Route path='/dashboard' element={<Dashboard />} />
           <Route path='/exercises' element={<ExercisesList />} />
+          <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
 
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
