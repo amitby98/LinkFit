@@ -4,7 +4,7 @@ import CloseMenu from "../assets/x.svg";
 import MenuIcon from "../assets/menu.svg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import "../styles/HomePage.css";
+import "./HomePage.scss";
 import homeVideo from "../pics/homeVideo.mp4";
 import logo from "../pics/logo.png";
 

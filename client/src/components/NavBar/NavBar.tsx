@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 import CloseMenu from "../assets/x.svg";
 import MenuIcon from "../assets/menu.svg";
-import "../styles/NavBar.css";
+import "./NavBar.scss";
 import { getAuth } from "firebase/auth";
 
 const NavBar = () => {

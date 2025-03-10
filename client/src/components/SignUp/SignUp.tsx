@@ -5,6 +5,7 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faEnvelope, faEye, faUser, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
+import "./SignUp.scss";
 
 interface SignUpProps {
   setReqDone: (value: boolean) => void;
@@ -154,7 +155,7 @@ function SignUp({ setReqDone }: SignUpProps) {
     <div className={`container ${mode}`}>
       <div className='forms-container'>
         <div className='signin-signup'>
-          <form onSubmit={e => e.preventDefault()} className='sign-in-form'>
+          <form onSubmit={e => e.preventDefault()} className='sign-in-form sign-form'>
             <h2 className='title'>Sign in to LinkFit</h2>
             <div className={`input-field ${validationErrors.email ? "error" : ""}`}>
               <FontAwesomeIcon icon={faEnvelope} color='#acacac' className='fa-fa' />
@@ -204,7 +205,7 @@ function SignUp({ setReqDone }: SignUpProps) {
             </div>
           </form>
 
-          <form onSubmit={e => e.preventDefault()} className='sign-up-form'>
+          <form onSubmit={e => e.preventDefault()} className='sign-up-form sign-form'>
             <h2 className='title'>Create Account</h2>
 
             <div className={`input-field ${validationErrors.username ? "error" : ""}`}>

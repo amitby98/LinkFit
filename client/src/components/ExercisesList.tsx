@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import NavBar from "./NavBar";
+import NavBar from "./NavBar/NavBar";
 
 const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
 

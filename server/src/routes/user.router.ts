@@ -103,9 +103,6 @@ userRouter.post("/register", (req, res) => {
     const { email, username, authProvider } = req.body;
     console.log("Register request:", { email, username, authProvider });
 
-    // Here you would typically check if the user already exists
-    // If not, create the user in your database
-
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error in register:", error);
