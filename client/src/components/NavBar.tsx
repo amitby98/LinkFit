@@ -36,7 +36,7 @@ const NavBar = () => {
         <ul className={menuOpen ? "nav-items active" : "nav-items"}>
           <li className='nav-item' onClick={closeMenu}>
             <Link to='/dashboard' className='nav-link'>
-              Feed
+              Dashboard
             </Link>
           </li>
           <li className='nav-item' onClick={closeMenu}>
