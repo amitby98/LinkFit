@@ -1,56 +1,40 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage, faThumbsUp, faComment, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
-import NavBar from "./NavBar";
-import { httpService } from "../httpService";
-import { UserDetails } from "../App";
-import "../styles/Dashboard.css";
+import { faImage } from "@fortawesome/free-solid-svg-icons";
+import NavBar from "../NavBar/NavBar";
+import { httpService } from "../../httpService";
+import { UserDetails } from "../../App";
+import "./Dashboard.css";
+import { Post } from "../Post";
 
-interface Post {
+export interface IPost {
   _id: string;
-  userId: string;
-  user: UserDetails;
-  text: string;
-  imageUrl?: string;
+  user: { username: string; profilePicture: string; _id: string };
+  body: string;
+  image: string;
   likes: string[];
   comments: Comment[];
+
   createdAt: string;
+  updatedAt: string;
 }
 
 interface Comment {
   _id: string;
-  userId: string;
-  user: UserDetails;
-  text: string;
+  user: Pick<UserDetails, "profilePicture" | "username">;
+  body: string;
   createdAt: string;
 }
 
-const Dashboard = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
+const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
+  const [posts, setPosts] = useState<IPost[]>([]);
   const [newPostText, setNewPostText] = useState("");
   const [postImage, setPostImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [currentUser, setCurrentUser] = useState<UserDetails | null>(null);
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
-  const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({});
-
-  const navigate = useNavigate();
-
-  // Fetch current user
-  useEffect(() => {
-    httpService
-      .get<UserDetails>("/auth/check")
-      .then(({ data }) => {
-        setCurrentUser(data);
-      })
-      .catch(err => {
-        setError("Error fetching user data");
-        console.error(err);
-      });
-  }, []);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   // Fetch all posts
   useEffect(() => {
@@ -60,7 +44,7 @@ const Dashboard = () => {
   const fetchPosts = () => {
     setIsLoading(true);
     httpService
-      .get<Post[]>("/posts")
+      .get<IPost[]>("/post")
       .then(({ data }) => {
         setPosts(data);
         setIsLoading(false);
@@ -80,12 +64,14 @@ const Dashboard = () => {
       const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
       if (!allowedTypes.includes(file.type)) {
         setError("Only JPEG, PNG, and GIF images are allowed");
+        console.log("Only JPEG, PNG, and GIF images are allowed");
         return;
       }
 
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size cannot exceed 5MB");
+        console.log("Image size cannot exceed 5MB");
         return;
       }
 
@@ -120,7 +106,7 @@ const Dashboard = () => {
         const formData = new FormData();
         formData.append("postImage", postImage);
 
-        const uploadResponse = await httpService.post<{ imageUrl: string }>("/posts/upload-image", formData, {
+        const uploadResponse = await httpService.post<{ imageUrl: string }>("/post/upload-image", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -131,11 +117,11 @@ const Dashboard = () => {
 
       // Create the post
       const postData = {
-        text: newPostText,
+        body: newPostText,
         imageUrl: imageUrl || undefined,
       };
 
-      await httpService.post("/posts", postData);
+      await httpService.post("/post", postData);
 
       // Reset form and fetch updated posts
       setNewPostText("");
@@ -152,13 +138,13 @@ const Dashboard = () => {
 
   const handleLike = async (postId: string) => {
     try {
-      await httpService.post(`/posts/${postId}/like`);
+      await httpService.post(`/post/${postId}/like`);
 
       // Update posts state
       setPosts(prevPosts =>
         prevPosts.map(post => {
           if (post._id === postId) {
-            const userId = currentUser?._id || "";
+            const userId = user?._id || "";
             // Toggle like
             if (post.likes.includes(userId)) {
               return { ...post, likes: post.likes.filter(id => id !== userId) };
@@ -180,14 +166,7 @@ const Dashboard = () => {
     setImagePreview(null);
   };
 
-  const toggleComments = (postId: string) => {
-    setShowComments(prev => ({
-      ...prev,
-      [postId]: !prev[postId],
-    }));
-  };
-
-  const handleCommentChange = (postId: string, value: string) => {
+  const onCommentInputChange = (postId: string, value: string) => {
     setNewComment(prev => ({
       ...prev,
       [postId]: value,
@@ -198,7 +177,7 @@ const Dashboard = () => {
     if (!newComment[postId]?.trim()) return;
 
     try {
-      await httpService.post(`/posts/${postId}/comment`, {
+      await httpService.post(`/post/${postId}/comment`, {
         text: newComment[postId],
       });
 
@@ -214,11 +193,6 @@ const Dashboard = () => {
       console.error("Error adding comment:", error);
       setError("Failed to add comment");
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -269,83 +243,17 @@ const Dashboard = () => {
               </div>
             )}
 
-            {posts.map(post => (
-              <div key={post._id} className='post-card'>
-                <div className='post-header'>
-                  <img src={post.user.profilePicture || "/default-avatar.png"} alt={`${post.user.username}'s profile`} className='post-avatar' onClick={() => navigate(`/profile/${post.userId}`)} />
-                  <div className='post-user-info'>
-                    <h3 className='post-username' onClick={() => navigate(`/profile/${post.userId}`)}>
-                      {post.user.username}
-                    </h3>
-                    <p className='post-date'>{formatDate(post.createdAt)}</p>
-                  </div>
-                </div>
-
-                <div className='post-content'>
-                  {post.text && <p className='post-text'>{post.text}</p>}
-                  {post.imageUrl && (
-                    <div className='post-image-container'>
-                      <img src={post.imageUrl} alt='Post content' className='post-image' />
-                    </div>
-                  )}
-                </div>
-
-                <div className='post-stats'>
-                  <span className='like-count'>
-                    {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
-                  </span>
-                  <span className='comment-count'>
-                    {post.comments.length} {post.comments.length === 1 ? "comment" : "comments"}
-                  </span>
-                </div>
-
-                <div className='post-actions'>
-                  <button className={`action-btn like-btn ${post.likes.includes(currentUser?._id || "") ? "liked" : ""}`} onClick={() => handleLike(post._id)}>
-                    <FontAwesomeIcon icon={faThumbsUp} />
-                    {post.likes.includes(currentUser?._id || "") ? "Liked" : "Like"}
-                  </button>
-                  <button className='action-btn comment-btn' onClick={() => toggleComments(post._id)}>
-                    <FontAwesomeIcon icon={faComment} /> Comment
-                  </button>
-                </div>
-
-                {/* Comments Section */}
-                {(showComments[post._id] || post.comments.length > 0) && (
-                  <div className='comments-section'>
-                    {post.comments.length > 0 && (
-                      <div className='comments-list'>
-                        {post.comments.map(comment => (
-                          <div key={comment._id} className='comment'>
-                            <img src={comment.user.profilePicture || "/default-avatar.png"} alt={`${comment.user.username}'s profile`} className='comment-avatar' />
-                            <div className='comment-content'>
-                              <div className='comment-header'>
-                                <span className='comment-username'>{comment.user.username}</span>
-                                <span className='comment-date'>{formatDate(comment.createdAt)}</span>
-                              </div>
-                              <p className='comment-text'>{comment.text}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Add Comment Form */}
-                    <div className='add-comment'>
-                      <img src={currentUser?.profilePicture || "/default-avatar.png"} alt='Your profile' className='comment-avatar' />
-                      <div className='comment-input-container'>
-                        <input type='text' placeholder='Write a comment...' value={newComment[post._id] || ""} onChange={e => handleCommentChange(post._id, e.target.value)} className='comment-input' />
-                        <button className='send-comment-btn' onClick={() => handleAddComment(post._id)} disabled={!newComment[post._id]?.trim()}>
-                          <FontAwesomeIcon icon={faPaperPlane} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} />)}
           </div>
         </div>
       </div>
+      {selectedPostId && user && (
+        <div className='modal'>
+          <div className='modal-content'>
+            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} />
+          </div>
+        </div>
+      )}
     </>
   );
 };
