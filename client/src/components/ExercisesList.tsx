@@ -19,7 +19,6 @@ const ExercisesList: React.FC = () => {
   const intervals = useRef<{ [key: string]: NodeJS.Timeout | null }>({});
   const runningState = useRef<{ [key: string]: boolean }>({});
 
-  // 🔹 פונקציה לקבלת האימונים
   const fetchExercises = async () => {
     try {
       const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscle}`);
@@ -38,16 +37,16 @@ const ExercisesList: React.FC = () => {
       setTimers(initialTimers);
       setRunning(initialRunning);
     } catch (error) {
-      console.error("❌ שגיאה בקבלת האימונים:", error);
+      console.error("error", error);
     }
   };
 
-  // 🔹 קריאה ל-API ברגע שהקומפוננטה נטענת
+  // call to api
   useEffect(() => {
     fetchExercises();
   }, [muscle]);
 
-  // 🔹 הפעלת/עצירת הטיימר
+  // Start or stop a timer
   const toggleTimer = (exerciseName: string) => {
     const isRunning = !runningState.current[exerciseName];
     runningState.current[exerciseName] = isRunning;
@@ -68,7 +67,7 @@ const ExercisesList: React.FC = () => {
     }
   };
 
-  // 🔹 איפוס טיימר
+  // Reset timer
   const resetTimer = (exerciseName: string) => {
     if (intervals.current[exerciseName]) {
       clearInterval(intervals.current[exerciseName]!);
@@ -85,7 +84,7 @@ const ExercisesList: React.FC = () => {
       <NavBar />
       <br />
       <div className='Workout' style={{ margin: "5rem" }}>
-        <h2>🔥 אימונים קצרים</h2>
+        <h2> Short training</h2>
         <select onChange={e => setMuscle(e.target.value)} value={muscle}>
           {muscleGroups.map((group, index) => (
             <option key={index} value={group}>
@@ -94,7 +93,7 @@ const ExercisesList: React.FC = () => {
           ))}
         </select>
 
-        <button onClick={fetchExercises}>קבל אימונים</button>
+        <button onClick={fetchExercises}>Get training</button>
       </div>
 
       <ul>

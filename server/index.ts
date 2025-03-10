@@ -56,7 +56,7 @@ app.get("/api/exercises/:muscle", async (req: Request, res: Response) => {
     res.json(response.data);
   } catch (error) {
     console.error("Error fetching exercises:", error);
-    res.status(500).json({ error: "שגיאה בקבלת הנתונים מה-API" });
+    res.status(500).json({ error: "Error receiving training" });
   }
 });
 ////////////////////////
