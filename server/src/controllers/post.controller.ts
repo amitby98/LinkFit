@@ -63,3 +63,27 @@ export const uploadPostPicture = async (req: AuthenticatedRequest, res: Response
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getUserPosts = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.params.userId;
+
+    console.log(`Fetching posts for userId: ${userId}`);
+
+    const posts = await PostModel.find({ user: userId })
+      .populate("user", "username profilePicture")
+      .populate({
+        path: "comments",
+        populate: {
+          path: "user",
+          select: "username profilePicture",
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).json({ message: "Failed to fetch user posts" });
+  }
+};

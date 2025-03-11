@@ -4,7 +4,7 @@ import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middlew
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { createComment, createPost, getPosts, uploadPostPicture } from "../controllers/post.controller";
+import { createComment, createPost, getPosts, uploadPostPicture, getUserPosts } from "../controllers/post.controller";
 
 export const postRouter = express.Router();
 
@@ -90,4 +90,9 @@ postRouter.post("/:postId/comment", authMiddleware, (req, res) => {
   const authRequest = req as AuthenticatedRequest;
   console.log(`POST create comment request for userId: ${authRequest.user.id}, postId: ${req.params.postId}`);
   createComment(authRequest, res);
+});
+
+postRouter.get("/user/:userId", authMiddleware, (req, res) => {
+  console.log(`GET user posts request for userId: ${req.params.userId}`);
+  getUserPosts(req as AuthenticatedRequest, res);
 });
