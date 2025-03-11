@@ -1,4 +1,4 @@
-import "./styles/App.scss";
+import "./App.scss";
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { initializeApp } from "firebase/app";
@@ -99,14 +99,13 @@ function App() {
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
           <Route path='/exercises' element={<ExercisesList />} />
-
           <Route path='/' element={<HomePage />} />
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
           <Route path='/dashboard' element={<Dashboard user={user} />} />
           <Route path='/exercises' element={<ExercisesList />} />
-          <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
+          {/* <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} /> */}
 
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
