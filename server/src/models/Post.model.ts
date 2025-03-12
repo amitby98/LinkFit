@@ -1,14 +1,14 @@
+
 import mongoose, { Document, Schema } from "mongoose";
 import { IComment } from "./Comments.model";
 import { IUser } from "./User.model";
 
 export interface IPost extends Document {
-  user: mongoose.Schema.Types.ObjectId | IUser;
+  user: mongoose.Types.ObjectId;
   body: string;
-  image: string;
-  likes: mongoose.Schema.Types.ObjectId[] | IUser[];
-  comments: mongoose.Schema.Types.ObjectId[] | IComment[];
-
+  image?: string;
+  likes: mongoose.Types.ObjectId[];
+  comments: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,7 +16,7 @@ export interface IPost extends Document {
 const PostSchema: Schema = new Schema<IPost>(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "User",
     },
@@ -28,14 +28,12 @@ const PostSchema: Schema = new Schema<IPost>(
       type: String,
     },
     likes: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "User",
+      type: [{ type: mongoose.Types.ObjectId, ref: "User" }],
       default: [],
     },
     comments: {
-      type: [mongoose.Schema.Types.ObjectId],
+      type: [{ type: mongoose.Types.ObjectId, ref: "Comment" }],
       default: [],
-      ref: "Comment",
     },
   },
   {

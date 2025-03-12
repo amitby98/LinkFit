@@ -1,4 +1,5 @@
 import path from "path";
+import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middleware/auth.middleware";
 import { Response } from "express";
 import PostModel from "../models/Post.model";
@@ -87,3 +88,55 @@ export const getUserPosts = async (req: AuthenticatedRequest, res: Response) => 
     res.status(500).json({ message: "Failed to fetch user posts" });
   }
 };
+  export const likePost = async (req: AuthenticatedRequest, res: Response) => {
+   try {
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const postId = req.params.postId;
+    
+    const post = await PostModel.findById(postId);
+    
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    const isLiked = post.likes.includes(userId);
+    if (isLiked) {
+      await PostModel.findByIdAndUpdate(postId, {
+        $pull: { likes: userId }
+      });
+    } else {
+      await PostModel.findByIdAndUpdate(postId, {
+        $addToSet: { likes: userId }
+      });
+  }
+  const updatedPost = await PostModel.findById(postId)
+    .populate("user", "username profilePicture");
+
+  res.status(200).json(updatedPost);
+} catch (error) {
+  console.error("Error liking/unliking post:", error);
+  res.status(500).json({ message: "Failed to like/unlike post" });
+}
+}; 
+export const getFavoritePosts = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user.id;
+    
+    // מצא פוסטים שהמשתמש עשה עליהם לייק
+    const favoritePosts = await PostModel.find({ likes: userId })
+      .populate("user", "username profilePicture")
+      .populate({
+        path: "comments",
+        populate: {
+          path: "user",
+          select: "username profilePicture",
+        },
+      })
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json(favoritePosts);
+  } catch (error) {
+    console.error("Error fetching favorite posts:", error);
+    res.status(500).json({ message: "Failed to fetch favorite posts" });
+  }
+}; 
+

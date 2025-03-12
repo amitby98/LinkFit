@@ -4,7 +4,8 @@ import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middlew
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { createComment, createPost, getPosts, uploadPostPicture, getUserPosts } from "../controllers/post.controller";
+import { createComment, createPost, getPosts, uploadPostPicture, getUserPosts, getFavoritePosts } from "../controllers/post.controller";
+import { likePost } from "../controllers/post.controller";
 
 export const postRouter = express.Router();
 
@@ -59,6 +60,18 @@ postRouter.post("/", authMiddleware, (req, res) => {
   const authRequest = req as AuthenticatedRequest;
   console.log(`POST create-post request for userId: ${authRequest.user.id}`);
   createPost(authRequest, res);
+});
+
+postRouter.post("/:postId/like", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  console.log(`POST like request for userId: ${authRequest.user.id}, postId: ${req.params.postId}`);
+  likePost(authRequest, res);
+});
+
+postRouter.get("/favorites", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  console.log(`GET favorite posts request for userId: ${authRequest.user.id}`);
+  getFavoritePosts(authRequest, res);
 });
 
 // Create a wrapper for handling multer errors
