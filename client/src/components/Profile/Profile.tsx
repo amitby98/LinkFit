@@ -10,26 +10,6 @@ import NavBar from "../NavBar/NavBar";
 import { Post } from "../Post";
 import { IPost } from "../Dashboard/Dashboard";
 
-////////////////////////
-// interface Post {
-//   _id: string;
-//   userId: string;
-//   user: UserDetails;
-//   text: string;
-//   imageUrl?: string;
-//   likes: string[];
-//   comments: Comment[];
-//   createdAt: string;
-// }
-
-// interface Comment {
-//   _id: string;
-//   userId: string;
-//   user: UserDetails;
-//   text: string;
-//   createdAt: string;
-// }
-
 interface ProfileProps {
   user: UserDetails | undefined;
   isLoadingUser: boolean;
@@ -434,47 +414,5 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     </>
   );
 }
-
-//                   <div className='post-content'>
-//                     {post.text && <p className='post-text'>{post.text}</p>}
-//                     {post.imageUrl && (
-//                       <div className='post-image-container'>
-//                         <img src={post.imageUrl} alt='Post content' className='post-image' />
-//                       </div>
-//                     )}
-//                   </div>
-
-//                   <div className='post-stats'>
-//                     <span className='like-count'>
-//                       {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
-//                     </span>
-//                     <span className='comment-count'>
-//                       {post.comments.length} {post.comments.length === 1 ? "comment" : "comments"}
-//                     </span>
-//                   </div>
-
-//                   <div className='post-actions'>
-//                     <button className={`action-btn like-btn ${post.likes.includes(user?._id || "") ? "liked" : ""}`} onClick={() => handleLike(post._id)}>
-//                       <FontAwesomeIcon icon={faThumbsUp} />
-//                       {post.likes.includes(user?._id || "") ? "Liked" : "Like"}
-//                     </button>
-//                     <button className='action-btn comment-btn' onClick={() => navigate(`/dashboard#post-${post._id}`)}>
-//                       <FontAwesomeIcon icon={faComment} /> Comment
-//                     </button>
-//                   </div>
-//                 </div>
-//               ))
-//             ) : (
-//               <div className='empty-posts'>
-//                 <p>No posts yet</p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   </>
-// );
-// }
 
 export default Profile;
