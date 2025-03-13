@@ -1,6 +1,6 @@
-import "./styles/App.scss";
+import "./App.scss";
 import { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth, User } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -43,6 +43,7 @@ function App() {
   const [user, setUser] = useState<UserDetails | undefined>(undefined);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (alertMessage) {
@@ -64,23 +65,27 @@ function App() {
   };
 
   const refetchUser = () => {
+    if (!localStorage.getItem("token")) {
+      return;
+    }
     return httpService
       .get<UserDetails>(`/auth/check`)
       .then(({ data }) => {
         setUser(data);
         setIsLoadingUser(false);
+        if (location.pathname === "/") {
+          navigate("/dashboard");
+        }
       })
       .catch(err => {
-        navigate("/sign-up");
-        setErrorMessage(err.response?.data || "Error checking user status");
+        navigate("/home");
+        setErrorMessage(JSON.stringify(err.response?.data) || "Error checking user status");
       });
   };
 
   useEffect(() => {
-    if (reqDone) {
-      refetchUser().then(() => navigate("/dashboard"));
-    }
-  }, [firebaseUser, loading, reqDone]);
+    refetchUser();
+  }, []);
 
   useEffect(() => {
     if (errorMessage) {
@@ -99,14 +104,13 @@ function App() {
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
           <Route path='/exercises' element={<ExercisesList />} />
-
           <Route path='/' element={<HomePage />} />
           <Route path='/home' element={<HomePage />} />
-          <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
+          <Route path='/sign-up' element={<SignUp refetchUser={refetchUser} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
           <Route path='/dashboard' element={<Dashboard user={user} />} />
           <Route path='/exercises' element={<ExercisesList />} />
-          <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
+          {/* <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} /> */}
 
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>

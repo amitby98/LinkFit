@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../pics/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
-import CloseMenu from "../assets/x.svg";
-import MenuIcon from "../assets/menu.svg";
 import "./NavBar.scss";
+import CloseMenu from "/src/assets/react.svg";
+import MenuIcon from "/src/assets/menu.svg";
+import logo from "/src/pics/logo.png";
 import { getAuth } from "firebase/auth";
 
 const NavBar = () => {
@@ -40,14 +40,14 @@ const NavBar = () => {
             </Link>
           </li>
           <li className='nav-item' onClick={closeMenu}>
-            <a href='/exercises' className='nav-link'>
+            <Link to='/exercises' className='nav-link'>
               Workouts
-            </a>
+            </Link>
           </li>
           <li className='nav-item' onClick={closeMenu}>
-            <a href='/profile' className='nav-link'>
+            <Link to='/profile' className='nav-link'>
               Profile
-            </a>
+            </Link>
           </li>
           <li className='nav-item'>
             <div className='notification-icon'>

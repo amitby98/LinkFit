@@ -2,31 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faCamera, faSave, faImage, faThumbsUp, faComment } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCamera, faSave, faImage, faThumbsUp, faComment, faHeart } from "@fortawesome/free-solid-svg-icons";
 import "./Profile.css";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
 import NavBar from "../NavBar/NavBar";
-
-////////////////////////
-interface Post {
-  _id: string;
-  userId: string;
-  user: UserDetails;
-  text: string;
-  imageUrl?: string;
-  likes: string[];
-  comments: Comment[];
-  createdAt: string;
-}
-
-interface Comment {
-  _id: string;
-  userId: string;
-  user: UserDetails;
-  text: string;
-  createdAt: string;
-}
+import { Post } from "../Post";
+import { IPost } from "../Dashboard/Dashboard";
 
 interface ProfileProps {
   user: UserDetails | undefined;
@@ -38,15 +20,20 @@ interface ProfileProps {
 function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [editedProfile, setEditedProfile] = useState<UserDetails | null>(null);
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null); ////////////
+  const [newComment, setNewComment] = useState<{ [key: string]: string }>({}); /////////
   const [validationErrors, setValidationErrors] = useState({
     username: "",
     profilePicture: "",
   });
 
-  // State for user posts
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<IPost[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+  const [favoritePosts, setFavoritePosts] = useState<IPost[]>([]);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
+  const [activeTab, setActiveTab] = useState<"posts" | "favorites">("posts");
 
   const navigate = useNavigate();
   const { userId } = useParams(); // For viewing other profiles
@@ -60,11 +47,18 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     if (user && user.email) {
       // Use the user prop to fetch profile data
       fetchUserPosts();
+      fetchFavoritePosts();
     } else {
       // If no user prop, redirect to login
       navigate("/sign-up");
     }
   }, [user, navigate, isLoadingUser]);
+
+  useEffect(() => {
+    if (activeTab === "favorites" && user?._id) {
+      fetchFavoritePosts();
+    }
+  }, [activeTab, user?._id]);
 
   const fetchUserPosts = async () => {
     setIsLoadingPosts(true);
@@ -77,7 +71,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
         return;
       }
 
-      const { data } = await httpService.get<Post[]>(`/post/user/${targetUserId}`);
+      const { data } = await httpService.get<IPost[]>(`/post/user/${targetUserId}`);
       setPosts(data);
     } catch (error) {
       console.error("Error fetching user posts:", error);
@@ -86,19 +80,31 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       setIsLoadingPosts(false);
     }
   };
+  const fetchFavoritePosts = async () => {
+    setIsLoadingFavorites(true);
+    try {
+      if (!user?._id) {
+        setIsLoadingFavorites(false);
+        return;
+      }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const { data } = await httpService.get<IPost[]>(`/post/favorites`);
+      setFavoritePosts(data);
+    } catch (error) {
+      console.error("Error fetching favorite posts:", error);
+      setError("Failed to load favorite posts");
+    } finally {
+      setIsLoadingFavorites(false);
+    }
   };
 
   const handleLike = async (postId: string) => {
     try {
       await httpService.post(`/post/${postId}/like`);
 
-      // Update posts state
-      setPosts(prevPosts =>
-        prevPosts.map(post => {
+      // Update both posts and favorites states
+      const updatePostsState = (currentPosts: IPost[]) =>
+        currentPosts.map(post => {
           if (post._id === postId) {
             const userId = user?._id || "";
             // Toggle like
@@ -109,12 +115,24 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
             }
           }
           return post;
-        })
-      );
+        });
+      setPosts(updatePostsState);
+      setFavoritePosts(updatePostsState);
+      // If unliked post is in favorites, refetch favorites
+      if (favoritePosts.some(post => post._id === postId)) {
+        fetchFavoritePosts();
+      }
     } catch (error) {
       console.error("Error liking post:", error);
       setError("Failed to like post");
     }
+  };
+
+  const onCommentInputChange = (postId: string, value: string) => {
+    setNewComment(prev => ({
+      ...prev,
+      [postId]: value,
+    }));
   };
 
   const validateProfileData = (): boolean => {
@@ -161,6 +179,12 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       const file = e.target.files[0];
       setProfilePictureFile(file);
       setValidationErrors({ ...validationErrors, profilePicture: "" });
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -214,6 +238,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       setEditedProfile(null);
       setError("");
       refetchUser();
+      setImagePreview(null);
     } catch (error: unknown) {
       console.error("Error updating profile:", error);
       if (error instanceof Error) {
@@ -240,6 +265,31 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     return <div className='loading-container'>Loading profile...</div>;
   }
 
+  ////////////////////:
+  const handleAddComment = async (postId: string) => {
+    if (!newComment[postId]?.trim()) return;
+
+    try {
+      await httpService.post(`/post/${postId}/comment`, {
+        text: newComment[postId],
+      });
+
+      // Clear comment input
+      setNewComment(prev => ({
+        ...prev,
+        [postId]: "",
+      }));
+
+      // Refresh posts to show new comment
+      fetchUserPosts();
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      setError("Failed to add comment");
+    }
+  };
+
+  const visiblePosts = activeTab === "posts" ? posts : favoritePosts;
+
   return (
     <>
       <NavBar />
@@ -252,7 +302,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 {editedProfile ? (
                   <>
                     <div className='profile-picture-edit'>
-                      <img src={user?.profilePicture || "/default-avatar.png"} alt='Profile' className='profile-picture' />
+                      <img src={imagePreview ?? (user?.profilePicture || "/default-avatar.png")} alt='Profile' className='profile-picture' />
                       <label className='profile-picture-upload'>
                         <FontAwesomeIcon icon={faCamera} />
                         <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
@@ -319,65 +369,43 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
           </div>
         </div>
 
-        {/* Posts Section */}
+        {/* Posts Tabs */}
         <div className='profile-posts-section'>
           <div className='profile-container'>
-            <h2>
-              <FontAwesomeIcon icon={faImage} /> My Posts
-            </h2>
-            <div className='posts-container'>
-              {isLoadingPosts ? (
-                <div className='loading'>Loading posts...</div>
-              ) : posts.length > 0 ? (
-                posts.map(post => (
-                  <div key={post._id} className='post-card'>
-                    <div className='post-header'>
-                      <img src={post.user.profilePicture || "/default-avatar.png"} alt={`${post.user.username}'s profile`} className='post-avatar' onClick={() => navigate(`/profile/${post.userId}`)} />
-                      <div className='post-user-info'>
-                        <h3 className='post-username' onClick={() => navigate(`/profile/${post.userId}`)}>
-                          {post.user.username}
-                        </h3>
-                        <p className='post-date'>{formatDate(post.createdAt)}</p>
-                      </div>
-                    </div>
+            <div className='profile-tabs'>
+              <button className={`tab-btn ${activeTab === "posts" ? "active" : ""}`} onClick={() => setActiveTab("posts")}>
+                <FontAwesomeIcon icon={faImage} /> My Posts
+              </button>
+              <button className={`tab-btn ${activeTab === "favorites" ? "active" : ""}`} onClick={() => setActiveTab("favorites")}>
+                <FontAwesomeIcon icon={faHeart} /> Favorites
+              </button>
 
-                    <div className='post-content'>
-                      {post.text && <p className='post-text'>{post.text}</p>}
-                      {post.imageUrl && (
-                        <div className='post-image-container'>
-                          <img src={post.imageUrl} alt='Post content' className='post-image' />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className='post-stats'>
-                      <span className='like-count'>
-                        {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
-                      </span>
-                      <span className='comment-count'>
-                        {post.comments.length} {post.comments.length === 1 ? "comment" : "comments"}
-                      </span>
-                    </div>
-
-                    <div className='post-actions'>
-                      <button className={`action-btn like-btn ${post.likes.includes(user?._id || "") ? "liked" : ""}`} onClick={() => handleLike(post._id)}>
-                        <FontAwesomeIcon icon={faThumbsUp} />
-                        {post.likes.includes(user?._id || "") ? "Liked" : "Like"}
-                      </button>
-                      <button className='action-btn comment-btn' onClick={() => navigate(`/dashboard#post-${post._id}`)}>
-                        <FontAwesomeIcon icon={faComment} /> Comment
-                      </button>
-                    </div>
+              <div className='posts-container'>
+                {isLoadingPosts ? (
+                  <div className='loading'>Loading posts...</div>
+                ) : posts.length > 0 ? (
+                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} />)
+                ) : (
+                  <div className='empty-posts'>
+                    <p>Nothing here yet— Share your first post and get started!</p>
                   </div>
-                ))
-              ) : (
-                <div className='empty-posts'>
-                  <p>No posts yet</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Modal with Post Component - Updated to show full post with comments */}
+        {selectedPostId && user && (
+          <div className='modal'>
+            <div className='modal-content'>
+              <button className='close-btn' onClick={() => setSelectedPostId(null)}>
+                ×
+              </button>
+              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} />
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
