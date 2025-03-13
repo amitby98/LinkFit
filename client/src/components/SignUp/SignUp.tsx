@@ -8,10 +8,10 @@ import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import "./SignUp.scss";
 
 interface SignUpProps {
-  setReqDone: (value: boolean) => void;
+  refetchUser: () => Promise<void>;
 }
 
-function SignUp({ setReqDone }: SignUpProps) {
+function SignUp({ refetchUser }: SignUpProps) {
   const [mode, setMode] = useState("");
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
@@ -71,7 +71,6 @@ function SignUp({ setReqDone }: SignUpProps) {
   };
 
   const SignUpWithGoogle = () => {
-    setReqDone(false);
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then(async result => {
@@ -81,23 +80,26 @@ function SignUp({ setReqDone }: SignUpProps) {
 
         // Posting to your backend to register the user
         axios
-          .post(`http://localhost:3001/api/user/register`, {
+          .post(`http://localhost:3001/api/auth/login-with-google`, {
             email,
             username: displayName,
             authProvider: "google",
           })
-          .then(() => {
-            setReqDone(true);
+          .then(response => {
+            refetchUser();
+            const token = (response.data as { token: string }).token;
+            localStorage.setItem("token", token);
             navigate("/profile"); // Redirect to profile page after success
+            refetchUser();
           })
           .catch(err => {
             setError(err.response?.data?.message || "Error during registration");
-            setReqDone(true);
+            refetchUser();
           });
       })
       .catch(err => {
         setError(err.message);
-        setReqDone(true);
+        refetchUser();
       });
   };
 
@@ -106,7 +108,7 @@ function SignUp({ setReqDone }: SignUpProps) {
       return;
     }
 
-    setReqDone(false);
+    refetchUser();
 
     axios
       .post(`http://localhost:3001/api/auth/register`, {
@@ -118,12 +120,12 @@ function SignUp({ setReqDone }: SignUpProps) {
         const token = (response.data as { token: string }).token;
         localStorage.setItem("token", token);
 
-        setReqDone(true);
+        refetchUser();
         navigate("/profile");
       })
       .catch(err => {
         setError(err.response?.data?.message || "Error during registration");
-        setReqDone(true);
+        refetchUser();
       });
   };
 
@@ -132,7 +134,7 @@ function SignUp({ setReqDone }: SignUpProps) {
       return;
     }
 
-    setReqDone(false);
+    refetchUser();
     axios
       .post(`http://localhost:3001/api/auth/login`, {
         email: emailInput,
@@ -142,12 +144,12 @@ function SignUp({ setReqDone }: SignUpProps) {
         const token = (response.data as { token: string }).token;
         localStorage.setItem("token", token);
 
-        setReqDone(true);
+        refetchUser();
         navigate("/profile"); // Redirect to profile page after registration
       })
       .catch(err => {
         setError(err.response?.data?.message || "Error during registration");
-        setReqDone(true);
+        refetchUser();
       });
   };
 

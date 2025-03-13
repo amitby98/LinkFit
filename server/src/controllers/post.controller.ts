@@ -65,9 +65,10 @@ export const uploadPostPicture = async (req: AuthenticatedRequest, res: Response
   }
 };
 
+////////////////////
 export const getUserPosts = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = req.params.userId;
+    const { userId } = req.params;
 
     console.log(`Fetching posts for userId: ${userId}`);
 

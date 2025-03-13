@@ -39,7 +39,6 @@ export function Post({
           <p className='post-date'>{formatDate(post.createdAt)}</p>
         </div>
       </div>
-
       <div className='post-content'>
         {post.body && <p className='post-text'>{post.body}</p>}
         {post.image && (
@@ -48,7 +47,6 @@ export function Post({
           </div>
         )}
       </div>
-
       <div className='post-stats'>
         <span className='like-count' onClick={() => handleLike(post._id)}>
           {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
@@ -57,7 +55,6 @@ export function Post({
           {post.comments.length} {post.comments.length === 1 ? "comment" : "comments"}
         </span>
       </div>
-
       <div className='post-actions'>
         <button className={`action-btn like-btn ${post.likes.includes(user?._id || "") ? "liked" : ""}`} onClick={() => handleLike(post._id)}>
           <FontAwesomeIcon icon={faThumbsUp} />
@@ -96,10 +93,9 @@ export function Post({
               onSubmit={e => {
                 e.preventDefault();
                 handleAddComment(post._id);
-              }}
-            >
+              }}>
               <input type='text' placeholder='Write a comment...' value={newComment[post._id] || ""} onChange={e => onCommentInputChange(post._id, e.target.value)} className='comment-input' />
-              <button className='send-comment-btn' onClick={() => handleAddComment(post._id)} disabled={!newComment[post._id]?.trim()}>
+              <button type='submit' className='send-comment-btn' disabled={!newComment[post._id]?.trim()}>
                 <FontAwesomeIcon icon={faPaperPlane} />
               </button>
             </form>

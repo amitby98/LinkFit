@@ -22,7 +22,7 @@ const PostSchema: Schema = new Schema<IPost>(
     },
     body: {
       type: String,
-      required: true,
+      default: "",
     },
     image: {
       type: String,
