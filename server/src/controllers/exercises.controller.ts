@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
-  apiKey: "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", // process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 async function getChatResponse(userMessage: string) {
