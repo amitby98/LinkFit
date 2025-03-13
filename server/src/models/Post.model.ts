@@ -1,4 +1,3 @@
-
 import mongoose, { Document, Schema } from "mongoose";
 import { IComment } from "./Comments.model";
 import { IUser } from "./User.model";

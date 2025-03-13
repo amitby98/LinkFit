@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { formatDate } from "../utils";
-import { IPost } from "./Dashboard/Dashboard";
+import { formatDate } from "../../utils";
+import { IPost } from "../Dashboard/Dashboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faImage, faPaperPlane, faThumbsUp } from "@fortawesome/free-solid-svg-icons";
-import { UserDetails } from "../App";
+import { UserDetails } from "../../App";
 import { useState } from "react";
-import { httpService } from "../httpService";
+import { httpService } from "../../httpService";
+import "./Post.css";
 
 export function Post({
   newComment,
@@ -36,6 +37,7 @@ export function Post({
   const [postImage, setPostImage] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handlePostSave = async () => {
     if (!editedPost.body.trim() && !postImage && !editedPost.image) {
@@ -117,7 +119,33 @@ export function Post({
     }
   };
 
-  console.log(post);
+  const handleDeletePost = async () => {
+    try {
+      await httpService.delete(`/post/${post._id}`);
+      refetchPosts();
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      setError("Failed to delete post");
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await httpService.delete(`/post/${post._id}`);
+      setShowDeleteModal(false);
+      refetchPosts();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      setError("Failed to delete post");
+      setShowDeleteModal(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
   return (
     <div key={post._id} className='post-card'>
       <div className='post-header'>
@@ -138,7 +166,7 @@ export function Post({
               }}>
               edit
             </button>
-            <button>delete</button>
+            <button onClick={() => setShowDeleteModal(true)}>delete</button>
           </>
         )}
       </div>
@@ -228,6 +256,23 @@ export function Post({
                 <FontAwesomeIcon icon={faPaperPlane} />
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className='modal-overlay'>
+          <div className='delete-modal'>
+            <h3>Delete Post</h3>
+            <p>Are you sure you want to delete this post?</p>
+            <div className='delete-modal-actions'>
+              <button onClick={cancelDelete} className='cancel-btn'>
+                Cancel
+              </button>
+              <button onClick={confirmDelete} className='delete-btn'>
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

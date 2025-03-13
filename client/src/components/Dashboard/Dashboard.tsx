@@ -5,7 +5,7 @@ import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
 import "./Dashboard.css";
-import { Post } from "../Post";
+import { Post } from "../Post/Post";
 
 export interface IPost {
   _id: string;

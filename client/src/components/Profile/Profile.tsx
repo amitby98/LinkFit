@@ -6,7 +6,7 @@ import "./Profile.css";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
 import NavBar from "../NavBar/NavBar";
-import { Post } from "../Post";
+import { Post } from "../Post/Post";
 import { IPost } from "../Dashboard/Dashboard";
 
 interface ProfileProps {
