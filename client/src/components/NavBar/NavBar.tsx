@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import logo from "../../pics/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import CloseMenu from "../../assets/x.svg";
+import MenuIcon from "../../assets/menu.svg";
 import "./NavBar.scss";
-import CloseMenu from "/src/assets/react.svg";
-import MenuIcon from "/src/assets/menu.svg";
-import logo from "/src/pics/logo.png";
 import { getAuth } from "firebase/auth";
 
 const NavBar = () => {
