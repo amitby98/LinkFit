@@ -4,6 +4,7 @@ import axios from "axios";
 import connectDB from "./src/config/db.ts";
 import { authRouter } from "./src/routes/auth.router";
 import { userRouter } from "./src/routes/user.router";
+import { postRouter } from "./src/routes/post.router";
 const API_URL = "https://exercisedb.p.rapidapi.com/exercises/bodyPart";
 const API_KEY = process.env.EXERCISEDB_API_KEY as string;
 
@@ -40,6 +41,7 @@ app.use("/uploads", express.static("uploads"));
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/post", postRouter);
 
 ///////////////////
 app.get("/api/exercises/:muscle", async (req: Request, res: Response) => {

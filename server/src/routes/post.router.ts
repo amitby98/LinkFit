@@ -1,14 +1,15 @@
 import express from "express";
 import { getUserProfile, updateUserProfile, uploadProfilePicture } from "../controllers/user.controller";
-import { authMiddleware } from "../middleware/auth.middleware";
+import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { createComment, createPost, getPosts, uploadPostPicture } from "../controllers/post.controller";
 
-export const userRouter = express.Router();
+export const postRouter = express.Router();
 
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, "../../uploads/profile-pictures");
+const uploadDir = path.join(__dirname, "../../uploads/posts");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log("Created upload directory:", uploadDir);
@@ -23,7 +24,7 @@ const storage = multer.diskStorage({
     // Use a more unique filename to avoid collisions
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
-    cb(null, `profile-${uniqueSuffix}${ext}`);
+    cb(null, `post-${uniqueSuffix}${ext}`);
   },
 });
 
@@ -48,36 +49,24 @@ const upload = multer({
   },
 });
 
-// Add error handling for file uploads
-const handleMulterErrors = (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err instanceof multer.MulterError) {
-    if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({ message: "File size exceeds the 5MB limit" });
-    }
-    return res.status(400).json({ message: `Upload error: ${err.message}` });
-  } else if (err) {
-    return res.status(400).json({ message: err.message });
-  }
-  next();
-};
-
-// User profile routes with more descriptive logging
-userRouter.get("/api/users/profile/:userId", authMiddleware, (req, res, next) => {
-  console.log(`GET profile request for userId: ${req.params.userId}`);
-  getUserProfile(req, res);
+postRouter.get("/", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  console.log(`GET post request for userId: ${authRequest.user.id}`);
+  getPosts(authRequest, res);
 });
 
-userRouter.put("/update-profile/:userId", authMiddleware, (req, res, next) => {
-  console.log(`PUT update-profile request for userId: ${req.params.userId}`);
-  updateUserProfile(req, res);
+postRouter.post("/", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  console.log(`POST create-post request for userId: ${authRequest.user.id}`);
+  createPost(authRequest, res);
 });
 
 // Create a wrapper for handling multer errors
-userRouter.post(
-  "/upload-profile-picture/:userId",
+postRouter.post(
+  "/upload-image",
   authMiddleware,
   (req, res, next) => {
-    upload.single("profilePicture")(req, res, err => {
+    upload.single("postImage")(req, res, err => {
       if (err) {
         if (err instanceof multer.MulterError) {
           if (err.code === "LIMIT_FILE_SIZE") {
@@ -92,20 +81,13 @@ userRouter.post(
     });
   },
   (req, res) => {
-    console.log(`POST upload-profile-picture request for userId: ${req.params.userId}`);
-    uploadProfilePicture(req, res);
+    console.log(`POST upload-post-picture request for userId: ${req.params.userId}`);
+    uploadPostPicture(req as AuthenticatedRequest, res);
   }
 );
 
-// Register route for Google auth
-userRouter.post("/register", (req, res) => {
-  try {
-    const { email, username, authProvider } = req.body;
-    console.log("Register request:", { email, username, authProvider });
-
-    res.status(201).json({ message: "User registered successfully" });
-  } catch (error) {
-    console.error("Error in register:", error);
-    res.status(500).json({ message: "Server error" });
-  }
+postRouter.post("/:postId/comment", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  console.log(`POST create comment request for userId: ${authRequest.user.id}, postId: ${req.params.postId}`);
+  createComment(authRequest, res);
 });

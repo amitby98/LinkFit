@@ -1,15 +1,15 @@
-import "./styles/App.css";
+import "./styles/App.scss";
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth, User } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
-import SignUp from "./components/SignUp";
-import HomePage from "./components/HomePage";
+import SignUp from "./components/SignUp/SignUp";
+import HomePage from "./components/HomePage/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
-import Profile from "./components/Profile";
-import Feed from "./components/Feed";
+import Profile from "./components/Profile/Profile";
+import Dashboard from "./components/Dashboard/Dashboard";
 import ExercisesList from "./components/ExercisesList";
 
 const firebaseConfig = {
@@ -55,7 +55,7 @@ function App() {
   const signOut = async () => {
     try {
       await auth.signOut();
-      navigate("/sign-up");
+      navigate("/");
       localStorage.removeItem("token");
       setUser(undefined);
     } catch (error) {
@@ -64,20 +64,21 @@ function App() {
   };
 
   const refetchUser = () => {
-    httpService
+    return httpService
       .get<UserDetails>(`/auth/check`)
       .then(({ data }) => {
         setUser(data);
         setIsLoadingUser(false);
       })
       .catch(err => {
+        navigate("/sign-up");
         setErrorMessage(err.response?.data || "Error checking user status");
       });
   };
 
   useEffect(() => {
     if (reqDone) {
-      refetchUser();
+      refetchUser().then(() => navigate("/dashboard"));
     }
   }, [firebaseUser, loading, reqDone]);
 
@@ -97,14 +98,15 @@ function App() {
     <div>
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
-          <Route path='/' element={<Check user={firebaseUser} loading={loading} registered={registered} />} />
           <Route path='/exercises' element={<ExercisesList />} />
 
+          <Route path='/' element={<HomePage />} />
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
-          <Route path='/dashboard' element={<Feed />} />
+          <Route path='/dashboard' element={<Dashboard user={user} />} />
           <Route path='/exercises' element={<ExercisesList />} />
+          <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
 
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
@@ -113,30 +115,6 @@ function App() {
       {errorMessage && <div className='error-message alert-popup'>{errorMessage}</div>}
     </div>
   );
-}
-
-interface CheckProps {
-  user: User | null | undefined;
-  loading: boolean;
-  registered: boolean | undefined;
-}
-
-function Check({ user, loading, registered }: CheckProps) {
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to='/home' />;
-  }
-
-  if (registered === undefined) {
-    return <div>Checking registration status...</div>;
-  }
-
-  if (registered === false) {
-    return <Navigate to='/details' />;
-  }
 }
 
 export default App;
