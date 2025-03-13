@@ -1,4 +1,3 @@
-/* Reset and base styles */
 * {
   margin: 0;
   padding: 0;
@@ -13,16 +12,14 @@ html {
   background-color: #fafafa;
 }
 
-/* Main profile page container */
 .profile-page {
   min-height: 100vh;
   width: 100%;
 }
 
-/* Common container for all sections - now at least 80% of screen width */
 .profile-container {
-  width: 80%; /* Minimum 80% of screen width */
-  min-width: 900px; /* But still has a minimum width */
+  width: 80%;
+  min-width: 900px;
   margin: 0 auto;
   padding: 20px;
   background-color: #fff;
@@ -313,7 +310,7 @@ html {
   }
 
   .profile-container {
-    width: 95%; /* Even wider on mobile */
+    width: 95%;
   }
 }
 
@@ -453,4 +450,20 @@ html {
   text-align: center;
   padding: 20px;
   color: #65676b;
+}
+
+.close-btn {
+  color: black;
+  border: transparent;
+  padding: 3px 10px;
+  font-size: 2.5rem;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+button:hover {
+  color: red;
+  border: transparent;
 }
