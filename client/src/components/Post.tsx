@@ -2,8 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { formatDate } from "../utils";
 import { IPost } from "./Dashboard/Dashboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment, faPaperPlane, faThumbsUp } from "@fortawesome/free-solid-svg-icons";
+import { faComment, faImage, faPaperPlane, faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import { UserDetails } from "../App";
+import { useState } from "react";
+import { httpService } from "../httpService";
 
 export function Post({
   newComment,
@@ -14,6 +16,7 @@ export function Post({
   handleAddComment,
   showComment,
   handleLike,
+  refetchPosts,
 }: {
   handleAddComment: (postId: string) => Promise<void>;
   user: UserDetails;
@@ -25,9 +28,96 @@ export function Post({
     [key: string]: string;
   };
   handleLike: (postId: string) => Promise<void>;
+  refetchPosts: () => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedPost, setEditedPost] = useState(post);
   const navigate = useNavigate();
+  const [postImage, setPostImage] = useState<File | null>(null);
+  const [error, setError] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const handlePostSave = async () => {
+    if (!editedPost.body.trim() && !postImage && !editedPost.image) {
+      setError("Post must contain text or an image");
+      return;
+    }
+
+    try {
+      let imageUrl = "";
+
+      // If there's an image, upload it first
+      if (postImage) {
+        const formData = new FormData();
+        formData.append("postImage", postImage);
+
+        const uploadResponse = await httpService.post<{ imageUrl: string }>("/post/upload-image", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        imageUrl = uploadResponse.data.imageUrl;
+      }
+
+      // Create the post
+      const postData = {
+        body: editedPost.body,
+        imageUrl: imageUrl || editedPost.image,
+      };
+
+      await httpService.put("/post/" + editedPost._id, postData);
+
+      // Reset form and fetch updated posts
+      setError("");
+      setPostImage(null);
+      setImagePreview(null);
+      setIsEditing(false);
+      refetchPosts();
+    } catch (error) {
+      console.error("Error creating post:", error);
+      setError("Failed to create post");
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setPostImage(null);
+    setImagePreview(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+
+      // Validate file type
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!allowedTypes.includes(file.type)) {
+        setError("Only JPEG, PNG, and GIF images are allowed");
+        console.log("Only JPEG, PNG, and GIF images are allowed");
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size cannot exceed 5MB");
+        console.log("Image size cannot exceed 5MB");
+        return;
+      }
+
+      setPostImage(file);
+
+      // Create image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      setError("");
+    }
+  };
+
+  console.log(post);
   return (
     <div key={post._id} className='post-card'>
       <div className='post-header'>
@@ -38,12 +128,51 @@ export function Post({
           </h3>
           <p className='post-date'>{formatDate(post.createdAt)}</p>
         </div>
+
+        {user._id === post.user._id && (
+          <>
+            <button
+              onClick={() => {
+                setIsEditing(isEditing => !isEditing);
+                setEditedPost(post);
+              }}>
+              edit
+            </button>
+            <button>delete</button>
+          </>
+        )}
       </div>
       <div className='post-content'>
-        {post.body && <p className='post-text'>{post.body}</p>}
-        {post.image && (
+        {post.body && !isEditing && <p className='post-text'>{post.body}</p>}
+        {isEditing && (
+          <input
+            className='post-text'
+            value={editedPost.body ?? ""}
+            onChange={e => {
+              setEditedPost({ ...editedPost, body: e.target.value });
+            }}
+          />
+        )}
+        {post.image && !isEditing && (
           <div className='post-image-container'>
             <img src={post.image} alt='Post content' className='post-image' />
+          </div>
+        )}
+        {isEditing && (
+          <>
+            <label className='upload-image-btn'>
+              <FontAwesomeIcon icon={faImage} /> {post.image ? "replace" : "add"}
+              <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
+            </label>
+            <button onClick={handlePostSave}>Save</button>
+          </>
+        )}
+        {imagePreview && (
+          <div className='image-preview-container'>
+            <img src={imagePreview} alt='Preview' className='image-preview' />
+            <button type='button' className='remove-image-btn' onClick={handleRemoveImage}>
+              ×
+            </button>
           </div>
         )}
       </div>
