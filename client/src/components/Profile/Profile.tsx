@@ -6,7 +6,7 @@ import "./Profile.css";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
 import NavBar from "../NavBar/NavBar";
-import { Post } from "../Post";
+import { Post } from "../Post/Post";
 import { IPost } from "../Dashboard/Dashboard";
 
 interface ProfileProps {
@@ -21,8 +21,8 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null); ////////////
-  const [newComment, setNewComment] = useState<{ [key: string]: string }>({}); /////////
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [validationErrors, setValidationErrors] = useState({
     username: "",
     profilePicture: "",
@@ -35,7 +35,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [activeTab, setActiveTab] = useState<"posts" | "favorites">("posts");
 
   const navigate = useNavigate();
-  const { userId } = useParams(); // For viewing other profiles
+  const { userId } = useParams();
 
   useEffect(() => {
     if (isLoadingUser) {
@@ -382,7 +382,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 {isLoadingPosts ? (
                   <div className='loading'>Loading posts...</div>
                 ) : posts.length > 0 ? (
-                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} />)
+                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />)
                 ) : (
                   <div className='empty-posts'>
                     <p>Nothing here yet— Share your first post and get started!</p>
@@ -400,7 +400,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
               <button className='close-btn' onClick={() => setSelectedPostId(null)}>
                 ×
               </button>
-              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} />
+              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />
             </div>
           </div>
         )}

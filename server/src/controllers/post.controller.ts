@@ -26,6 +26,13 @@ export const createPost = async (req: AuthenticatedRequest, res: Response) => {
   res.status(200).json({ message: "Post created successfully" });
 };
 
+export const editPost = async (req: AuthenticatedRequest, res: Response) => {
+  console.log(`PUT edit-post request for userId: ${req.user.id}`);
+  await PostModel.findByIdAndUpdate(req.params.postId, { body: req.body.body, image: req.body.imageUrl }).exec();
+
+  res.status(200).json({ message: "Post edited successfully" });
+};
+
 export const createComment = async (req: AuthenticatedRequest, res: Response) => {
   const newComment = new CommentsModel({
     user: req.user.id,
@@ -65,7 +72,6 @@ export const uploadPostPicture = async (req: AuthenticatedRequest, res: Response
   }
 };
 
-////////////////////
 export const getUserPosts = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { userId } = req.params;
@@ -137,5 +143,31 @@ export const getFavoritePosts = async (req: AuthenticatedRequest, res: Response)
   } catch (error) {
     console.error("Error fetching favorite posts:", error);
     res.status(500).json({ message: "Failed to fetch favorite posts" });
+  }
+};
+
+export const deletePost = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    const post = await PostModel.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.user.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized: You can only delete your own posts" });
+    }
+
+    await CommentsModel.deleteMany({ post: postId });
+
+    await PostModel.findByIdAndDelete(postId);
+
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    res.status(500).json({ message: "Failed to delete post" });
   }
 };
