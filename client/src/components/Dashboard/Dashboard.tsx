@@ -26,14 +26,14 @@ interface Comment {
 }
 
 const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
-  const [posts, setPosts] = useState<IPost[]>([]);
   const [newPostText, setNewPostText] = useState("");
   const [postImage, setPostImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [posts, setPosts] = useState<IPost[]>([]);
 
   // Fetch all posts
   useEffect(() => {
@@ -41,16 +41,12 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   }, []);
 
   const fetchPosts = () => {
-    setIsLoading(true);
     httpService
       .get<IPost[]>("/post")
       .then(({ data }) => {
         setPosts(data);
-        setIsLoading(false);
       })
       .catch(err => {
-        setError("Error fetching posts");
-        setIsLoading(false);
         console.error(err);
       });
   };
@@ -243,7 +239,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
               </div>
             )}
 
-            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} />)}
+            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchPosts} />)}
           </div>
         </div>
       </div>
@@ -253,7 +249,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
             <button className='close-btn' onClick={() => setSelectedPostId(null)}>
               ×
             </button>
-            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} />
+            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchPosts} />
           </div>
         </div>
       )}

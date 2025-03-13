@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-// import { useAuthState } from "react-firebase-hooks/auth";
 import SignUp from "./components/SignUp/SignUp";
 import HomePage from "./components/HomePage/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
@@ -35,9 +34,6 @@ export interface UserDetails {
 }
 
 function App() {
-  // const [firebaseUser, loading] = useAuthState(auth);
-  // const [registered, setRegistered] = useState<boolean | undefined>(undefined);
-  // const [reqDone, setReqDone] = useState(true);
   const [alertMessage, setAlertMessage] = useState<string | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [user, setUser] = useState<UserDetails | undefined>(undefined);
@@ -64,23 +60,27 @@ function App() {
     }
   };
 
-  const refetchUser = () => {
+  const refetchUser = (): Promise<void> => {
     if (!localStorage.getItem("token")) {
-      return;
+      return Promise.resolve();
     }
-    return httpService
-      .get<UserDetails>(`/auth/check`)
-      .then(({ data }) => {
-        setUser(data);
-        setIsLoadingUser(false);
-        if (location.pathname === "/") {
-          navigate("/dashboard");
-        }
-      })
-      .catch(err => {
-        navigate("/home");
-        setErrorMessage(JSON.stringify(err.response?.data) || "Error checking user status");
-      });
+    return new Promise((res, rej) => {
+      httpService
+        .get<UserDetails>(`/auth/check`)
+        .then(({ data }) => {
+          setUser(data);
+          setIsLoadingUser(false);
+          if (location.pathname === "/") {
+            navigate("/dashboard");
+          }
+          res();
+        })
+        .catch(err => {
+          navigate("/home");
+          rej();
+          setErrorMessage(JSON.stringify(err.response?.data) || "Error checking user status");
+        });
+    });
   };
 
   useEffect(() => {
@@ -110,8 +110,6 @@ function App() {
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
           <Route path='/dashboard' element={<Dashboard user={user} />} />
           <Route path='/exercises' element={<ExercisesList />} />
-          {/* <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} /> */}
-
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
       </SetErrorContext.Provider>
