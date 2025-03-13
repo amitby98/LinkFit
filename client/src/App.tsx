@@ -98,8 +98,8 @@ function App() {
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
           <Route path='/' element={<Check user={firebaseUser} loading={loading} registered={registered} />} />
+          <Route path='/exercises' element={<ExercisesList />} />
 
-          {/* User authentication routes */}
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp setReqDone={setReqDone} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
@@ -115,7 +115,6 @@ function App() {
   );
 }
 
-// Corrected Check component
 interface CheckProps {
   user: User | null | undefined;
   loading: boolean;
@@ -138,8 +137,6 @@ function Check({ user, loading, registered }: CheckProps) {
   if (registered === false) {
     return <Navigate to='/details' />;
   }
-
-  return <Navigate to='/dashboard' />;
 }
 
 export default App;
