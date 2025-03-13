@@ -26,6 +26,13 @@ export const createPost = async (req: AuthenticatedRequest, res: Response) => {
   res.status(200).json({ message: "Post created successfully" });
 };
 
+export const editPost = async (req: AuthenticatedRequest, res: Response) => {
+  console.log(`PUT edit-post request for userId: ${req.user.id}`);
+  await PostModel.findByIdAndUpdate(req.params.postId, { body: req.body.body, image: req.body.imageUrl }).exec();
+
+  res.status(200).json({ message: "Post edited successfully" });
+};
+
 export const createComment = async (req: AuthenticatedRequest, res: Response) => {
   const newComment = new CommentsModel({
     user: req.user.id,
