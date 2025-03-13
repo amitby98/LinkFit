@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import axios from "axios";
 import connectDB from "./src/config/db.ts";
+import { setupSwagger } from "./src/config/swagger.ts";
 import { authRouter } from "./src/routes/auth.router";
 import { userRouter } from "./src/routes/user.router";
 import { postRouter } from "./src/routes/post.router";
@@ -63,6 +64,7 @@ app.get("/api/exercises/:muscle", async (req: Request, res: Response) => {
 });
 ////////////////////////
 
+setupSwagger(app);
 // Start Express server
 app.listen(app.get("port"), () => {
   console.log("App is running at http://localhost:%d in %s mode", app.get("port"), app.get("env"));

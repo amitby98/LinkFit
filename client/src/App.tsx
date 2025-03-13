@@ -2,8 +2,8 @@ import "./App.scss";
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { initializeApp } from "firebase/app";
-import { getAuth, User } from "firebase/auth";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { getAuth } from "firebase/auth";
+// import { useAuthState } from "react-firebase-hooks/auth";
 import SignUp from "./components/SignUp/SignUp";
 import HomePage from "./components/HomePage/HomePage";
 import { SetErrorContext } from "./contexts/ErrorContext";
@@ -35,9 +35,9 @@ export interface UserDetails {
 }
 
 function App() {
-  const [firebaseUser, loading] = useAuthState(auth);
-  const [registered, setRegistered] = useState<boolean | undefined>(undefined);
-  const [reqDone, setReqDone] = useState(true);
+  // const [firebaseUser, loading] = useAuthState(auth);
+  // const [registered, setRegistered] = useState<boolean | undefined>(undefined);
+  // const [reqDone, setReqDone] = useState(true);
   const [alertMessage, setAlertMessage] = useState<string | undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [user, setUser] = useState<UserDetails | undefined>(undefined);

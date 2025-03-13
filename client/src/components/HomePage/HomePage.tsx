@@ -70,11 +70,11 @@ const HomePage = () => {
       </div>
       <div id='guideView'>
         <h1>How It Works</h1>
-        <p>khfddfuijbhvfgtuuyoijkbhvgchfdtu</p>
+        <p>How It Works page</p>
       </div>
       <div id='aboutView'>
         <h1>About</h1>
-        <p>khfddfuijbhvfgtuuyoijkbhvgchfdtuyuk</p>
+        <p>About page</p>
       </div>
 
       <div className='main-footer'>
