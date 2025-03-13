@@ -3,7 +3,7 @@ import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middlew
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { createComment, createPost, getPosts, uploadPostPicture, getUserPosts, getFavoritePosts } from "../controllers/post.controller";
+import { createComment, createPost, getPosts, uploadPostPicture, getUserPosts, getFavoritePosts, editPost } from "../controllers/post.controller";
 import { likePost } from "../controllers/post.controller";
 
 /**
@@ -107,6 +107,12 @@ postRouter.post("/", authMiddleware, (req, res) => {
   const authRequest = req as AuthenticatedRequest;
   console.log(`POST create-post request for userId: ${authRequest.user.id}`);
   createPost(authRequest, res);
+});
+
+postRouter.put("/:postId", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  console.log(`POST create-post request for userId: ${authRequest.user.id}`);
+  editPost(authRequest, res);
 });
 
 /**
