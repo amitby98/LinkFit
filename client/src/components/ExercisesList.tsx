@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import NavBar from "./NavBar/NavBar";
 
@@ -13,37 +13,99 @@ interface Exercise {
 const ExercisesList: React.FC = () => {
   const [muscle, setMuscle] = useState<string>("cardio");
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [timers, setTimers] = useState<{ [key: string]: number }>({});
+  const [running, setRunning] = useState<{ [key: string]: boolean }>({});
+
+  const intervals = useRef<{ [key: string]: NodeJS.Timeout | null }>({});
+  const runningState = useRef<{ [key: string]: boolean }>({});
 
   const fetchExercises = async () => {
     try {
-      const response = await axios.get(`http://localhost:3001/api/exercises/${muscle}`);
-      setExercises(response.data as Exercise[]);
+      const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscle}`);
+      setExercises(response.data);
       console.log(response.data);
+
+      const initialTimers: { [key: string]: number } = {};
+      const initialRunning: { [key: string]: boolean } = {};
+      response.data.forEach(exercise => {
+        initialTimers[exercise.name] = 0;
+        initialRunning[exercise.name] = false;
+        intervals.current[exercise.name] = null;
+        runningState.current[exercise.name] = false;
+      });
+
+      setTimers(initialTimers);
+      setRunning(initialRunning);
     } catch (error) {
-      console.error("❌ שגיאה בקבלת האימונים:", error);
+      console.error("error", error);
     }
+  };
+
+  // call to api
+  useEffect(() => {
+    fetchExercises();
+  }, [muscle]);
+
+  // Start or stop a timer
+  const toggleTimer = (exerciseName: string) => {
+    const isRunning = !runningState.current[exerciseName];
+    runningState.current[exerciseName] = isRunning;
+    setRunning(prev => ({ ...prev, [exerciseName]: isRunning }));
+
+    if (isRunning) {
+      intervals.current[exerciseName] = setInterval(() => {
+        setTimers(prevTimers => ({
+          ...prevTimers,
+          [exerciseName]: prevTimers[exerciseName] + 1,
+        }));
+      }, 1000);
+    } else {
+      if (intervals.current[exerciseName]) {
+        clearInterval(intervals.current[exerciseName]!);
+        intervals.current[exerciseName] = null;
+      }
+    }
+  };
+
+  // Reset timer
+  const resetTimer = (exerciseName: string) => {
+    if (intervals.current[exerciseName]) {
+      clearInterval(intervals.current[exerciseName]!);
+      intervals.current[exerciseName] = null;
+    }
+
+    runningState.current[exerciseName] = false;
+    setRunning(prev => ({ ...prev, [exerciseName]: false }));
+    setTimers(prevTimers => ({ ...prevTimers, [exerciseName]: 0 }));
   };
 
   return (
     <>
       <NavBar />
-      <h2>🔥 אימונים קצרים</h2>
-      <select onChange={e => setMuscle(e.target.value)} value={muscle}>
-        {muscleGroups.map((group, index) => (
-          <option key={index} value={group}>
-            {group}
-          </option>
-        ))}
-      </select>
+      <br />
+      <div className='Workout' style={{ margin: "5rem" }}>
+        <h2> Short training</h2>
+        <select onChange={e => setMuscle(e.target.value)} value={muscle}>
+          {muscleGroups.map((group, index) => (
+            <option key={index} value={group}>
+              {group}
+            </option>
+          ))}
+        </select>
 
-      <button onClick={fetchExercises}>קבל אימונים</button>
+        <button onClick={fetchExercises}>Get training</button>
+      </div>
 
       <ul>
         {exercises.map((exercise, index) => (
           <li key={index}>
             <strong>{exercise.name}</strong> - {exercise.equipment}
             <br />
-            <img src={exercise.gifUrl} alt={exercise.name} width='100' />
+            {exercise.gifUrl && <img src={exercise.gifUrl} alt={exercise.name} width='150' />}
+            <br />
+            <button onClick={() => toggleTimer(exercise.name)}>{running[exercise.name] ? "Pause" : "Start"}</button>
+            <button onClick={() => resetTimer(exercise.name)}>Reset</button>
+            <div> Timer: {timers[exercise.name]} seconds</div>
           </li>
         ))}
       </ul>
