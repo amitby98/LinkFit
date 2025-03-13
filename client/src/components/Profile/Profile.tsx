@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAuth } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faCamera, faSave, faImage, faThumbsUp, faComment, faHeart } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCamera, faSave, faImage, faHeart } from "@fortawesome/free-solid-svg-icons";
 import "./Profile.css";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
@@ -37,7 +36,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
   const navigate = useNavigate();
   const { userId } = useParams(); // For viewing other profiles
-  const auth = getAuth();
 
   useEffect(() => {
     if (isLoadingUser) {
