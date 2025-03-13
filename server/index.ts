@@ -1,13 +1,11 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
-import axios from "axios";
 import connectDB from "./src/config/db.ts";
 import { setupSwagger } from "./src/config/swagger.ts";
 import { authRouter } from "./src/routes/auth.router";
 import { userRouter } from "./src/routes/user.router";
 import { postRouter } from "./src/routes/post.router";
-const API_URL = "https://exercisedb.p.rapidapi.com/exercises/bodyPart";
-const API_KEY = process.env.EXERCISEDB_API_KEY as string;
+import { exerciseRouter } from "./src/routes/exercises.router.ts";
 
 //Load environment variables
 require("dotenv").config();
@@ -43,26 +41,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/post", postRouter);
-
-///////////////////
-app.get("/api/exercises/:muscle", async (req: Request, res: Response) => {
-  const muscle = req.params.muscle;
-
-  try {
-    const response = await axios.get(`${API_URL}/${muscle}`, {
-      headers: {
-        "X-RapidAPI-Key": API_KEY,
-        "X-RapidAPI-Host": "exercisedb.p.rapidapi.com",
-      },
-    });
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching exercises:", error);
-    res.status(500).json({ error: "Error receiving training" });
-  }
-});
-////////////////////////
+app.use("/api/exercises", exerciseRouter);
 
 setupSwagger(app);
 // Start Express server

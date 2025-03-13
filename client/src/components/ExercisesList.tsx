@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import NavBar from "./NavBar/NavBar";
+import { httpService } from "../httpService";
 
 const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
 
@@ -8,6 +9,7 @@ interface Exercise {
   name: string;
   equipment: string;
   gifUrl: string;
+  guidance?: string;
 }
 
 const ExercisesList: React.FC = () => {
@@ -79,6 +81,21 @@ const ExercisesList: React.FC = () => {
     setTimers(prevTimers => ({ ...prevTimers, [exerciseName]: 0 }));
   };
 
+  const handleSubmit = async (e: React.FormEvent, exerciseName: string, index: number) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const prompt = formData.get("prompt") as string;
+
+    const response = await httpService.post<{ response: string }>("http://localhost:3001/api/exercises/guidance", { exercise: exerciseName, prompt });
+
+    setExercises(prevExercises => {
+      const updatedExercises = [...prevExercises];
+      updatedExercises[index].guidance = formatResponse(response.data.response);
+      return updatedExercises;
+    });
+  };
+
   return (
     <>
       <NavBar />
@@ -106,6 +123,11 @@ const ExercisesList: React.FC = () => {
             <button onClick={() => toggleTimer(exercise.name)}>{running[exercise.name] ? "Pause" : "Start"}</button>
             <button onClick={() => resetTimer(exercise.name)}>Reset</button>
             <div> Timer: {timers[exercise.name]} seconds</div>
+            <form onSubmit={e => handleSubmit(e, exercise.name, index)}>
+              <input type='text' placeholder='Ask anything about this exercise' name='prompt' />
+              <button>Submit</button>
+            </form>
+            {exercise.guidance && <p style={{ whiteSpace: "break-spaces" }} dangerouslySetInnerHTML={{ __html: exercise.guidance }} />}
           </li>
         ))}
       </ul>
@@ -114,3 +136,9 @@ const ExercisesList: React.FC = () => {
 };
 
 export default ExercisesList;
+
+function formatResponse(response: string): string {
+  return response
+    .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") // Convert **text** to <b>text</b>
+    .replace(/\n\n-/g, "\n-"); // Ensure single newline before bullets
+}
