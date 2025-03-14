@@ -109,11 +109,70 @@ postRouter.post("/", authMiddleware, (req, res) => {
 });
 
 //////////////////// swagger ////////////////////
+// swagger for edit-post
+/**
+ * @swagger
+ * /api/post/{postId}:
+ *   put:
+ *     summary: Edit a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to edit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               body:
+ *                 type: string
+ *                 description: The updated content of the post
+ *               imageUrl:
+ *                 type: string
+ *                 description: URL of the updated image (if any)
+ *     responses:
+ *       200:
+ *         description: Post edited successfully
+ *       404:
+ *         description: Post not found
+ */
+
 postRouter.put("/:postId", authMiddleware, (req, res) => {
   const authRequest = req as AuthenticatedRequest;
   console.log(`PUT edit-post request for userId: ${authRequest.user.id}`);
   editPost(authRequest, res);
 });
+
+// swagger for delete-post
+/**
+ * @swagger
+ * /api/post/{postId}:
+ *   delete:
+ *     summary: Delete a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to delete
+ *     responses:
+ *       200: 
+ *         description: Post deleted successfully
+ *       404:
+ *         description: Post not found
+ */
 
 postRouter.delete("/:postId", authMiddleware, (req, res) => {
   const authRequest = req as AuthenticatedRequest;

@@ -119,17 +119,6 @@ export function Post({
     }
   };
 
-  const handleDeletePost = async () => {
-    try {
-      await httpService.delete(`/post/${post._id}`);
-      refetchPosts();
-      setShowDeleteModal(false);
-    } catch (error) {
-      console.error("Error deleting post:", error);
-      setError("Failed to delete post");
-    }
-  };
-
   const confirmDelete = async () => {
     try {
       await httpService.delete(`/post/${post._id}`);
@@ -163,7 +152,8 @@ export function Post({
               onClick={() => {
                 setIsEditing(isEditing => !isEditing);
                 setEditedPost(post);
-              }}>
+              }}
+            >
               edit
             </button>
             <button onClick={() => setShowDeleteModal(true)}>delete</button>
@@ -250,7 +240,8 @@ export function Post({
               onSubmit={e => {
                 e.preventDefault();
                 handleAddComment(post._id);
-              }}>
+              }}
+            >
               <input type='text' placeholder='Write a comment...' value={newComment[post._id] || ""} onChange={e => onCommentInputChange(post._id, e.target.value)} className='comment-input' />
               <button type='submit' className='send-comment-btn' disabled={!newComment[post._id]?.trim()}>
                 <FontAwesomeIcon icon={faPaperPlane} />
