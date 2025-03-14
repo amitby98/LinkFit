@@ -27,13 +27,11 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     username: "",
     profilePicture: "",
   });
-
   const [posts, setPosts] = useState<IPost[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [favoritePosts, setFavoritePosts] = useState<IPost[]>([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
   const [activeTab, setActiveTab] = useState<"posts" | "favorites">("posts");
-
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -43,7 +41,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
 
     if (user && user.email) {
-      // Use the user prop to fetch profile data
       fetchUserPosts();
       fetchFavoritePosts();
     } else {
@@ -78,6 +75,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       setIsLoadingPosts(false);
     }
   };
+
   const fetchFavoritePosts = async () => {
     setIsLoadingFavorites(true);
     try {
