@@ -385,7 +385,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                   user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />)
                 ) : (
                   <div className='empty-posts'>
-                    <p>Nothing here yet— Share your first post and get started!</p>
+                    <p>Nothing here yet — Share your first post and get started!</p>
                   </div>
                 )}
               </div>

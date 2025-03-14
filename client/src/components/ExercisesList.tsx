@@ -109,8 +109,6 @@ const ExercisesList: React.FC = () => {
             </option>
           ))}
         </select>
-
-        <button onClick={fetchExercises}>Get training</button>
       </div>
 
       <ul>
