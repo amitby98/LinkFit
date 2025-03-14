@@ -34,17 +34,33 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [posts, setPosts] = useState<IPost[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
+  useScrollToBottom(() => {
+    if (hasNextPage) {
+      setPage(prev => prev + 1);
+    }
+  });
 
   // Fetch all posts
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [page]);
 
   const fetchPosts = () => {
     httpService
-      .get<IPost[]>("/post")
+      .get<IPost[]>(`/post?page=${page}`)
       .then(({ data }) => {
-        setPosts(data);
+        if (data.length === 0) {
+          setHasNextPage(false);
+          return;
+        }
+        setPosts(prev => {
+          // verify there are no duplicate posts
+          const newPosts = data.filter(newPost => !prev.find(post => post._id === newPost._id));
+          return [...prev, ...newPosts];
+        });
       })
       .catch(err => {
         console.error(err);
@@ -258,3 +274,20 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
 };
 
 export default Dashboard;
+
+function useScrollToBottom(callback: () => void) {
+  useEffect(() => {
+    const handleScroll = () => {
+      console.log("document.body.scrollTop", document.body.scrollTop);
+      console.log("document.body.scrollHeight", document.body.scrollHeight);
+      if (document.body.scrollTop + window.innerHeight + 10 >= document.body.scrollHeight) {
+        callback();
+      }
+    };
+
+    window.addEventListener("mousewheel", handleScroll);
+    return () => {
+      window.removeEventListener("mousewheel", handleScroll);
+    };
+  }, [callback]);
+}

@@ -7,7 +7,11 @@ import CommentsModel from "../models/Comments.model";
 
 export const getPosts = async (req: AuthenticatedRequest, res: Response) => {
   console.log(`GET post request for userId: ${req.user.id}`);
+  const page = parseInt(req.query.page as string) || 1;
+  const itemsPerPage = 10;
   const posts = await PostModel.find()
+    .skip((page - 1) * itemsPerPage)
+    .limit(itemsPerPage)
     .populate("user", "username profilePicture")
     .populate({ path: "comments", populate: ["body", { path: "user", select: "username profilePicture" }] })
     .sort({ createdAt: -1 });
@@ -23,7 +27,7 @@ export const createPost = async (req: AuthenticatedRequest, res: Response) => {
   });
   await newPost.save();
 
-  res.status(200).json({ message: "Post created successfully" });
+  res.status(200).json({ message: "Post created successfully", id: newPost._id });
 };
 
 export const editPost = async (req: AuthenticatedRequest, res: Response) => {
