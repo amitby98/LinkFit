@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { login, loginWithGoogle, register } from "../controllers/auth.controller";
 import { getUserProfile } from "../controllers/user.controller";
-import { authMiddleware } from "../middleware/auth.middleware";
+import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middleware";
 
 dotenv.config();
 
@@ -138,4 +138,8 @@ authRouter.post("/login-with-google", loginWithGoogle);
  *         description: Unauthorized, invalid or missing token
  */
 
-authRouter.get("/check", authMiddleware, getUserProfile);
+authRouter.get("/check", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  console.log(`GET check request for userId: ${authRequest.user.id}`);
+  getUserProfile(authRequest, res);
+});
