@@ -109,7 +109,6 @@ function App() {
           <Route path='/sign-up' element={<SignUp refetchUser={refetchUser} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
           <Route path='/dashboard' element={<Dashboard user={user} />} />
-          <Route path='/exercises' element={<ExercisesList />} />
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
       </SetErrorContext.Provider>

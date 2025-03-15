@@ -6,7 +6,7 @@ import { getExerciseRecommendations, getExercisesForMuscle } from "../controller
  * @swagger
  * tags:
  *   name: Exercises
- *  description: API endpoints for managing exercises
+ *   description: API endpoints for managing exercises
  */
 export const exerciseRouter = express.Router();
 
