@@ -2,9 +2,8 @@ import { Request, Response } from "express";
 import User from "../models/User.model";
 import fs from "fs";
 import path from "path";
-import { AuthenticatedRequest } from "../middleware/auth.middleware";
 
-export const getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     // Ensure the user is accessing their own profile
     const userId = req.user.id;
@@ -29,7 +28,7 @@ export const updateUserProfile = async (req: Request, res: Response): Promise<vo
     const { username, bio, profilePicture } = req.body;
 
     // Ensure the user is updating their own profile
-    if ((req as AuthenticatedRequest).user.id !== userId) {
+    if (req.user.id !== userId) {
       res.status(403).json({ message: "Not authorized to update this profile" });
       return;
     }
@@ -61,7 +60,7 @@ export const uploadProfilePicture = async (req: Request, res: Response): Promise
     const { userId } = req.params;
 
     // Ensure the user is updating their own profile
-    if ((req as AuthenticatedRequest).user.id !== userId) {
+    if (req.user.id !== userId) {
       res.status(403).json({ message: "Not authorized to update this profile" });
       return;
     }

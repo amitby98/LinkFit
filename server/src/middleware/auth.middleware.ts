@@ -10,6 +10,7 @@ export interface AuthenticatedRequest extends Request {
 
 export const authMiddleware = (req: Request, res: Response, next: any): any => {
   const bearer = req.header("Authorization");
+  console.log(bearer);
   if (!bearer) return res.status(401).json({ message: "Access denied" });
 
   const token = bearer.split(" ")[1];

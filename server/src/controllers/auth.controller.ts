@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/User.model";
 import bcrypt from "bcryptjs";
 
-export const signJwt = (userId: string) => {
+const signJwt = (userId: string) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET as string, {
     expiresIn: "30d",
   });
@@ -72,7 +72,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       const isPasswordMatching = await userExists.comparePassword(password);
       if (isPasswordMatching) {
         const token = signJwt((userExists as IUser)._id!.toString());
-        res.status(200).json({ token, id: userExists._id });
+        res.status(200).json({ token });
       } else {
         res.status(401).json({ message: "Invalid credentials" });
       }
