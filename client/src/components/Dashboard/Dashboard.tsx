@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage } from "@fortawesome/free-solid-svg-icons";
 import NavBar from "../NavBar/NavBar";
@@ -36,34 +36,104 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [posts, setPosts] = useState<IPost[]>([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const ITEMS_PER_PAGE = 10; // Match this with your backend itemsPerPage
 
-  useScrollToBottom(() => {
-    if (hasNextPage) {
-      setPage(prev => prev + 1);
-    }
-  });
+  // Improved fetchPosts function that returns a Promise so we can know when it completes
+  const fetchPosts = useCallback(
+    async (pageNum: number) => {
+      if (loadingMore) return false; // Prevent multiple simultaneous requests
 
-  // Fetch all posts
-  useEffect(() => {
-    fetchPosts();
-  }, [page]);
+      try {
+        setLoadingMore(true);
+        const { data } = await httpService.get<IPost[]>(`/post?page=${pageNum}`);
 
-  const fetchPosts = () => {
-    httpService
-      .get<IPost[]>(`/post?page=${page}`)
-      .then(({ data }) => {
         if (data.length === 0) {
           setHasNextPage(false);
-          return;
+        } else if (data.length < ITEMS_PER_PAGE) {
+          // If we get fewer items than the page size, we're on the last page
+          setHasNextPage(false);
+          setPosts(prev => {
+            // Verify there are no duplicate posts
+            const newPosts = data.filter(newPost => !prev.find(post => post._id === newPost._id));
+            return [...prev, ...newPosts];
+          });
+        } else {
+          setPosts(prev => {
+            // Verify there are no duplicate posts
+            const newPosts = data.filter(newPost => !prev.find(post => post._id === newPost._id));
+            return [...prev, ...newPosts];
+          });
+          // There might be more pages since we got exactly ITEMS_PER_PAGE items
+          setHasNextPage(true);
         }
-        setPosts(prev => {
-          // verify there are no duplicate posts
-          const newPosts = data.filter(newPost => !prev.find(post => post._id === newPost._id));
-          return [...prev, ...newPosts];
-        });
+        setLoadingMore(false);
+        return true;
+      } catch (err) {
+        console.error("Error fetching posts:", err);
+        setLoadingMore(false);
+        return false;
+      }
+    },
+    [loadingMore]
+  );
+
+  // Improved scroll handler with debounce
+  useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    let isFetching = false;
+
+    const handleScroll = () => {
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const documentHeight = document.body.offsetHeight;
+      const scrollThreshold = documentHeight - 300;
+
+      // Clear any existing timeout to prevent multiple rapid calls
+      clearTimeout(scrollTimeout);
+
+      // Set a new timeout to debounce the scroll event
+      scrollTimeout = setTimeout(async () => {
+        if (scrollPosition >= scrollThreshold && hasNextPage && !loadingMore && !isFetching) {
+          isFetching = true; // Local flag to prevent concurrent fetches
+          console.log(`Loading more posts from page ${page + 1}`);
+
+          const success = await fetchPosts(page + 1);
+          if (success) {
+            setPage(prev => prev + 1);
+          }
+
+          isFetching = false;
+        }
+      }, 300); // 300ms debounce
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [fetchPosts, hasNextPage, loadingMore, page]);
+
+  // Initial fetch when component mounts
+  useEffect(() => {
+    fetchPosts(1);
+  }, []);
+
+  const refreshPosts = () => {
+    // Reset page and posts when we want to refresh
+    setPage(1);
+    setPosts([]);
+    setHasNextPage(true);
+    setLoadingMore(false);
+    httpService
+      .get<IPost[]>(`/post?page=1`)
+      .then(({ data }) => {
+        setPosts(data);
+        // Set hasNextPage based on the number of posts received
+        setHasNextPage(data.length === ITEMS_PER_PAGE);
       })
       .catch(err => {
-        console.error(err);
+        console.error("Error refreshing posts:", err);
       });
   };
 
@@ -139,7 +209,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
       setError("");
       setPostImage(null);
       setImagePreview(null);
-      fetchPosts();
+      refreshPosts();
     } catch (error) {
       console.error("Error creating post:", error);
       setError("Failed to create post");
@@ -199,8 +269,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
         [postId]: "",
       }));
 
-      // Refresh posts to show new comment
-      fetchPosts();
+      // Refresh the specific post to show new comment immediately
+      const updatedPost = await httpService.get<IPost>(`/post/${postId}`);
+      if (updatedPost.data) {
+        setPosts(prevPosts => prevPosts.map(post => (post._id === postId ? updatedPost.data : post)));
+      }
     } catch (error) {
       console.error("Error adding comment:", error);
       setError("Failed to add comment");
@@ -247,7 +320,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
           <div className='posts-container'>
             <h2>Recent Posts</h2>
 
-            {isLoading && <div className='loading'>Loading posts...</div>}
+            {isLoading && posts.length === 0 && <div className='loading'>Loading posts...</div>}
 
             {!isLoading && posts.length === 0 && (
               <div className='no-posts'>
@@ -255,7 +328,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
               </div>
             )}
 
-            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchPosts} />)}
+            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} />)}
+
+            {loadingMore && <div className='loading-more'>Loading more posts...</div>}
+
+            {!hasNextPage && posts.length > 0 && <div className='no-more-posts'>No more posts to load</div>}
           </div>
         </div>
       </div>
@@ -265,7 +342,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
             <button className='close-btn' onClick={() => setSelectedPostId(null)}>
               ×
             </button>
-            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchPosts} />
+            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} />
           </div>
         </div>
       )}
@@ -274,20 +351,3 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
 };
 
 export default Dashboard;
-
-function useScrollToBottom(callback: () => void) {
-  useEffect(() => {
-    const handleScroll = () => {
-      console.log("document.body.scrollTop", document.body.scrollTop);
-      console.log("document.body.scrollHeight", document.body.scrollHeight);
-      if (document.body.scrollTop + window.innerHeight + 10 >= document.body.scrollHeight) {
-        callback();
-      }
-    };
-
-    window.addEventListener("mousewheel", handleScroll);
-    return () => {
-      window.removeEventListener("mousewheel", handleScroll);
-    };
-  }, [callback]);
-}
