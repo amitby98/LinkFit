@@ -3,7 +3,7 @@ import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middlew
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { likePost, createComment, createPost, deletePost, getPosts, uploadPostPicture, getUserPosts, getFavoritePosts, editPost } from "../controllers/post.controller";
+import { likePost, createComment, createPost, deletePost, getPosts, uploadPostPicture, getUserPosts, getFavoritePosts, editPost, getPost } from "../controllers/post.controller";
 
 /**
  * @swagger
@@ -168,7 +168,7 @@ postRouter.put("/:postId", authMiddleware, (req, res) => {
  *         required: true
  *         description: The ID of the post to delete
  *     responses:
- *       200: 
+ *       200:
  *         description: Post deleted successfully
  *       404:
  *         description: Post not found
@@ -338,4 +338,10 @@ postRouter.post("/:postId/comment", authMiddleware, (req, res) => {
 postRouter.get("/user/:userId", authMiddleware, (req, res) => {
   console.log(`GET user posts request for userId: ${req.params.userId}`);
   getUserPosts(req as AuthenticatedRequest, res);
+});
+
+/////////
+postRouter.get("/:postId", authMiddleware, (req, res) => {
+  const authRequest = req as AuthenticatedRequest;
+  getPost(authRequest, res);
 });
