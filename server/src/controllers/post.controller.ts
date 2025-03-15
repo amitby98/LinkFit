@@ -175,3 +175,28 @@ export const deletePost = async (req: AuthenticatedRequest, res: Response) => {
     res.status(500).json({ message: "Failed to delete post" });
   }
 };
+
+export const getPost = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const postId = req.params.postId;
+
+    const post = await PostModel.findById(postId)
+      .populate("user", "username profilePicture")
+      .populate({
+        path: "comments",
+        populate: {
+          path: "user",
+          select: "username profilePicture",
+        },
+      });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json(post);
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    res.status(500).json({ message: "Failed to fetch post" });
+  }
+};
