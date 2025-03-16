@@ -94,7 +94,7 @@ const ExerciseChallenge: React.FC = () => {
 
   // function for audio feedback
   const playSuccessSound = () => {
-    const audio = new Audio("/public/success-sound.mp3");
+    const audio = new Audio("/success-sound.mp3");
     audio.play().catch(error => console.log("Audio playback error:", error));
   };
 
