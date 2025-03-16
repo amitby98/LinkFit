@@ -13,10 +13,12 @@ interface Exercise {
 
 interface DayChallenge {
   day: number;
-  exercise: Exercise | null;
+  exerciseId?: string;
+  muscleGroup?: string;
+  exercise?: Exercise | null;
   completed: boolean;
   date?: string;
-  timeSpent?: number; // Track time spent on each completed exercise
+  timeSpent?: number;
 }
 
 const ExerciseChallenge: React.FC = () => {
@@ -29,33 +31,109 @@ const ExerciseChallenge: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [progress, setProgress] = useState<number>(0);
   const [showResetModal, setShowResetModal] = useState<boolean>(false);
+  const [isLoadingExercise, setIsLoadingExercise] = useState<boolean>(false);
 
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
 
-  // Fetch all exercises from all muscle groups once when component mounts
   useEffect(() => {
-    const fetchAllExercises = async () => {
-      setIsLoading(true);
-      try {
-        const allExercisesList: Exercise[] = [];
-
-        for (const muscle of muscleGroups) {
-          const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscle}`);
-          allExercisesList.push(...response.data);
-        }
-
-        setAllExercises(allExercisesList);
-        initializeChallengeDays(allExercisesList);
-      } catch (error) {
-        console.error("Error fetching exercises:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAllExercises();
+    initializeChallenge();
   }, []);
+
+  const initializeChallenge = async () => {
+    setIsLoading(true);
+
+    const savedChallenge = localStorage.getItem("exerciseChallenge");
+
+    if (savedChallenge) {
+      const parsed = JSON.parse(savedChallenge);
+      setChallengeDays(parsed);
+
+      const today = new Date().toLocaleDateString();
+      const todayCompletedDay = parsed.findIndex((day: DayChallenge) => day.date === today && day.completed);
+
+      if (todayCompletedDay !== -1) {
+        const selectedDayNumber = todayCompletedDay + 1;
+        setSelectedDay(selectedDayNumber);
+        loadExerciseForDay(selectedDayNumber, parsed);
+      } else {
+        const nextIncompleteDay = parsed.findIndex((day: DayChallenge) => !day.completed);
+        if (nextIncompleteDay !== -1) {
+          const selectedDayNumber = nextIncompleteDay + 1;
+          setSelectedDay(selectedDayNumber);
+          loadExerciseForDay(selectedDayNumber, parsed);
+        }
+      }
+    } else {
+      await createNewChallenge();
+    }
+
+    setIsLoading(false);
+  };
+
+  const createNewChallenge = async () => {
+    try {
+      const days: DayChallenge[] = Array.from({ length: 100 }, (_, i) => {
+        const randomMuscleGroup = muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
+        return {
+          day: i + 1,
+          muscleGroup: randomMuscleGroup,
+          exerciseId: `exercise_placeholder_${i}`,
+          completed: false,
+        };
+      });
+
+      setChallengeDays(days);
+      localStorage.setItem("exerciseChallenge", JSON.stringify(days));
+      setSelectedDay(1);
+      await loadExerciseForDay(1, days);
+    } catch (error) {
+      console.error("Error creating challenge:", error);
+    }
+  };
+
+  const loadExerciseForDay = async (day: number, currentDays: DayChallenge[] = challengeDays) => {
+    const dayIndex = day - 1;
+    if (currentDays[dayIndex]?.exercise?.name) {
+      return;
+    }
+    setIsLoadingExercise(true);
+    try {
+      const muscleGroup = currentDays[dayIndex].muscleGroup || muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
+      const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscleGroup}`);
+      const randomIndex = Math.floor(Math.random() * response.data.length);
+      const exercise = response.data[randomIndex];
+      const updatedDays = [...currentDays];
+      updatedDays[dayIndex] = {
+        ...updatedDays[dayIndex],
+        exercise,
+        exerciseId: exercise.name,
+        muscleGroup,
+      };
+
+      setChallengeDays(updatedDays);
+      localStorage.setItem("exerciseChallenge", JSON.stringify(updatedDays));
+    } catch (error) {
+      console.error(`Error loading exercise for day ${day}:`, error);
+    } finally {
+      setIsLoadingExercise(false);
+    }
+  };
+
+  const selectDay = async (day: number) => {
+    // If timer is running for current day, confirm before switching
+    if (isRunning && selectedDay !== null) {
+      if (!window.confirm("Timer is running. Switch days anyway?")) {
+        return;
+      }
+      resetTimer();
+    }
+    setSelectedDay(day);
+    resetTimer();
+    setShareMessage("");
+    // Load the exercise for the selected day if needed
+    await loadExerciseForDay(day);
+  };
 
   // Calculate and update progress whenever challengeDays changes
   useEffect(() => {
@@ -151,7 +229,7 @@ const ExerciseChallenge: React.FC = () => {
       const updatedDays = [...challengeDays];
       updatedDays[selectedDay - 1].completed = true;
       updatedDays[selectedDay - 1].date = new Date().toLocaleDateString();
-      updatedDays[selectedDay - 1].timeSpent = timer; // Store time spent
+      updatedDays[selectedDay - 1].timeSpent = timer;
 
       setChallengeDays(updatedDays);
       localStorage.setItem("exerciseChallenge", JSON.stringify(updatedDays));
@@ -230,6 +308,11 @@ const ExerciseChallenge: React.FC = () => {
     // Keep the share message available
   };
 
+  // Formatter function
+  function formatResponse(response: string): string {
+    return response.replace(/\n/g, "<br />");
+  }
+
   // Show the reset confirmation modal
   const openResetModal = () => {
     setShowResetModal(true);
@@ -278,21 +361,6 @@ const ExerciseChallenge: React.FC = () => {
     } catch (error) {
       console.error("Error getting guidance:", error);
     }
-  };
-
-  // Select a day to view/perform the exercise
-  const selectDay = (day: number) => {
-    // If timer is running for current day, confirm before switching
-    if (isRunning && selectedDay !== null) {
-      if (!window.confirm("Timer is running. Switch days anyway?")) {
-        return;
-      }
-      resetTimer();
-    }
-
-    setSelectedDay(day);
-    resetTimer();
-    setShareMessage("");
   };
 
   // Calculate streak (consecutive days completed)
@@ -434,7 +502,6 @@ const ExerciseChallenge: React.FC = () => {
             Reset Challenge
           </button>
         </div>
-
         {/* Challenge Progress Stats */}
         <div
           style={{
@@ -468,7 +535,6 @@ const ExerciseChallenge: React.FC = () => {
             </div>
           </div>
         </div>
-
         {/* Progress bar */}
         <div
           style={{
@@ -487,7 +553,6 @@ const ExerciseChallenge: React.FC = () => {
             }}
           />
         </div>
-
         {/* Challenge Days Grid */}
         <div
           style={{
@@ -514,7 +579,6 @@ const ExerciseChallenge: React.FC = () => {
             </div>
           ))}
         </div>
-
         {/* Showing more days in a scrollable container */}
         <div
           style={{
@@ -541,238 +605,206 @@ const ExerciseChallenge: React.FC = () => {
             </div>
           ))}
         </div>
-
         {/* Selected Day Exercise Section */}
-        <div
-          style={{
-            marginTop: "2rem",
-            backgroundColor: "#f9f9f9",
-            borderRadius: "10px",
-            padding: "20px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          }}>
-          {selectedDay !== null && (
-            <div>
-              <h2
-                style={{
-                  color: "#2e7d32",
-                  marginBottom: "20px",
-                  borderBottom: "2px solid #e0e0e0",
-                  paddingBottom: "10px",
-                }}>
-                Day {selectedDay} Challenge
-              </h2>
+        {isLoadingExercise ? (
+          <div style={{ textAlign: "center", padding: "20px" }}>
+            <p>Loading exercise details...</p>
+          </div>
+        ) : (
+          <div>
+            <h3 style={{ fontSize: "1.5rem", color: "#1976d2" }}>{selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name ?? "No exercise assigned" : "No exercise assigned"}</h3>
 
-              {challengeDays[selectedDay - 1].exercise ? (
-                <div>
-                  <h3 style={{ fontSize: "1.5rem", color: "#1976d2" }}>{challengeDays[selectedDay - 1].exercise?.name ?? "No exercise assigned"}</h3>
+            <p
+              style={{
+                backgroundColor: "#efefef",
+                padding: "8px 15px",
+                borderRadius: "20px",
+                display: "inline-block",
+                fontSize: "0.9rem",
+              }}>
+              Equipment: {selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.equipment || "None required" : "None required"}
+            </p>
 
-                  <p
-                    style={{
-                      backgroundColor: "#efefef",
-                      padding: "8px 15px",
-                      borderRadius: "20px",
-                      display: "inline-block",
-                      fontSize: "0.9rem",
-                    }}>
-                    Equipment: {challengeDays[selectedDay - 1].exercise?.equipment || "None required"}
-                  </p>
-
-                  {/* Two column layout for larger screens */}
+            {/* Two column layout for larger screens */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: "20px",
+                marginTop: "20px",
+              }}>
+              {/* Left column - Image */}
+              <div style={{ flex: "1 1 350px" }}>
+                {selectedDay !== null && challengeDays[selectedDay - 1]?.exercise?.gifUrl && (
                   <div
                     style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      gap: "20px",
-                      marginTop: "20px",
+                      position: "relative",
+                      width: "100%",
+                      marginBottom: "15px",
+                      borderRadius: "10px",
+                      overflow: "hidden",
                     }}>
-                    {/* Left column - Image */}
-                    <div style={{ flex: "1 1 350px" }}>
-                      {challengeDays[selectedDay - 1]?.exercise?.gifUrl && (
-                        <div
-                          style={{
-                            position: "relative",
-                            width: "100%",
-                            marginBottom: "15px",
-                            borderRadius: "10px",
-                            overflow: "hidden",
-                          }}>
-                          <img
-                            src={challengeDays[selectedDay - 1].exercise?.gifUrl}
-                            alt={challengeDays[selectedDay - 1].exercise?.name}
-                            style={{
-                              width: "100%",
-                              borderRadius: "10px",
-                              objectFit: "cover",
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right column - Timer and controls */}
-                    <div style={{ flex: "1 1 350px" }}>
-                      <div
-                        style={{
-                          backgroundColor: "#e0f7fa",
-                          padding: "20px",
-                          borderRadius: "10px",
-                          marginBottom: "20px",
-                          textAlign: "center",
-                        }}>
-                        <div
-                          style={{
-                            fontSize: "2.5rem",
-                            fontWeight: "bold",
-                            marginBottom: "15px",
-                            fontFamily: "monospace",
-                          }}>
-                          {formatTime(timer)}
-                        </div>
-
-                        <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
-                          <button
-                            onClick={toggleTimer}
-                            style={{
-                              padding: "10px 20px",
-                              backgroundColor: isRunning ? "#f44336" : "#4caf50",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "1rem",
-                              transition: "background-color 0.3s",
-                            }}>
-                            {isRunning ? "Pause" : "Start"}
-                          </button>
-
-                          <button
-                            onClick={resetTimer}
-                            style={{
-                              padding: "10px 20px",
-                              backgroundColor: "#757575",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "1rem",
-                            }}>
-                            Reset
-                          </button>
-                        </div>
-                      </div>
-
-                      {!challengeDays[selectedDay - 1].completed && (
-                        <button
-                          onClick={completeExercise}
-                          style={{
-                            width: "100%",
-                            padding: "15px",
-                            backgroundColor: "#2e7d32",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "1.1rem",
-                            fontWeight: "bold",
-                            marginBottom: "20px",
-                          }}>
-                          Complete Exercise
-                        </button>
-                      )}
-
-                      {challengeDays[selectedDay - 1].completed && (
-                        <div
-                          style={{
-                            backgroundColor: "#e8f5e9",
-                            padding: "15px",
-                            borderRadius: "5px",
-                            marginBottom: "20px",
-                            textAlign: "center",
-                          }}>
-                          <p style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#2e7d32" }}>✅ Completed in {formatTime(challengeDays[selectedDay - 1].timeSpent || 0)}</p>
-                          <p style={{ fontSize: "0.9rem", color: "#757575" }}>Completed on: {challengeDays[selectedDay - 1].date || "Unknown date"}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* OpenAI Guidance Section */}
-                  <div style={{ marginTop: "30px" }}>
-                    <h3
+                    <img
+                      src={challengeDays[selectedDay - 1].exercise?.gifUrl}
+                      alt={challengeDays[selectedDay - 1].exercise?.name}
                       style={{
-                        fontSize: "1.2rem",
-                        marginBottom: "15px",
-                        borderBottom: "1px solid #e0e0e0",
-                        paddingBottom: "8px",
-                      }}>
-                      Get Exercise Guidance
-                    </h3>
-
-                    <form
-                      onSubmit={handleGuidanceSubmit}
-                      style={{
-                        display: "flex",
-                        gap: "10px",
-                        marginBottom: "20px",
-                      }}>
-                      <input
-                        type='text'
-                        placeholder={`Ask anything about ${challengeDays[selectedDay - 1].exercise?.name}...`}
-                        name='prompt'
-                        style={{
-                          flex: "1",
-                          padding: "10px 15px",
-                          border: "1px solid #e0e0e0",
-                          borderRadius: "4px",
-                          fontSize: "1rem",
-                        }}
-                      />
-                      <button
-                        style={{
-                          padding: "10px 20px",
-                          backgroundColor: "#1976d2",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontSize: "1rem",
-                        }}>
-                        Get Guidance
-                      </button>
-                    </form>
-
-                    {challengeDays[selectedDay - 1].exercise?.guidance && (
-                      <div
-                        style={{
-                          backgroundColor: "#f5f5f5",
-                          padding: "20px",
-                          borderRadius: "8px",
-                          marginTop: "10px",
-                          border: "1px solid #e0e0e0",
-                          lineHeight: "1.6",
-                        }}
-                        dangerouslySetInnerHTML={{ __html: challengeDays[selectedDay - 1].exercise?.guidance ?? "" }}
-                      />
-                    )}
+                        width: "100%",
+                        borderRadius: "10px",
+                        objectFit: "cover",
+                      }}
+                    />
                   </div>
-                </div>
-              ) : (
+                )}
+              </div>
+
+              {/* Right column - Timer and controls */}
+              <div style={{ flex: "1 1 350px" }}>
                 <div
                   style={{
-                    padding: "30px",
+                    backgroundColor: "#e0f7fa",
+                    padding: "20px",
+                    borderRadius: "10px",
+                    marginBottom: "20px",
                     textAlign: "center",
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: "8px",
                   }}>
-                  <p style={{ fontSize: "1.2rem" }}>No exercise assigned for today. Rest up! 😴</p>
+                  <div
+                    style={{
+                      fontSize: "2.5rem",
+                      fontWeight: "bold",
+                      marginBottom: "15px",
+                      fontFamily: "monospace",
+                    }}>
+                    {formatTime(timer)}
+                  </div>
+
+                  <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
+                    <button
+                      onClick={toggleTimer}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: isRunning ? "#f44336" : "#4caf50",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "1rem",
+                        transition: "background-color 0.3s",
+                      }}>
+                      {isRunning ? "Pause" : "Start"}
+                    </button>
+
+                    <button
+                      onClick={resetTimer}
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#757575",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "1rem",
+                      }}>
+                      Reset
+                    </button>
+                  </div>
                 </div>
-              )}
+
+                {selectedDay !== null && !challengeDays[selectedDay - 1].completed && (
+                  <button
+                    onClick={completeExercise}
+                    style={{
+                      width: "100%",
+                      padding: "15px",
+                      backgroundColor: "#2e7d32",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      marginBottom: "20px",
+                    }}>
+                    Complete Exercise
+                  </button>
+                )}
+
+                {selectedDay !== null && challengeDays[selectedDay - 1].completed && (
+                  <div
+                    style={{
+                      backgroundColor: "#e8f5e9",
+                      padding: "15px",
+                      borderRadius: "5px",
+                      marginBottom: "20px",
+                      textAlign: "center",
+                    }}>
+                    <p style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#2e7d32" }}>✅ Completed in {formatTime(challengeDays[selectedDay - 1].timeSpent || 0)}</p>
+                    <p style={{ fontSize: "0.9rem", color: "#757575" }}>Completed on: {challengeDays[selectedDay - 1].date || "Unknown date"}</p>
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+        )}
+        ;{/* OpenAI Guidance Section */}
+        <div style={{ marginTop: "30px" }}>
+          <h3
+            style={{
+              fontSize: "1.2rem",
+              marginBottom: "15px",
+              borderBottom: "1px solid #e0e0e0",
+              paddingBottom: "8px",
+            }}>
+            Get Exercise Guidance
+          </h3>
+
+          <form
+            onSubmit={handleGuidanceSubmit}
+            style={{
+              display: "flex",
+              gap: "10px",
+              marginBottom: "20px",
+            }}>
+            <input
+              type='text'
+              placeholder={`Ask anything about ${selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name : ""}...`}
+              name='prompt'
+              style={{
+                flex: "1",
+                padding: "10px 15px",
+                border: "1px solid #e0e0e0",
+                borderRadius: "4px",
+                fontSize: "1rem",
+              }}
+            />
+            <button
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#1976d2",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "1rem",
+              }}>
+              Get Guidance
+            </button>
+          </form>
+
+          {selectedDay !== null && challengeDays[selectedDay - 1].exercise?.guidance && (
+            <div
+              style={{
+                backgroundColor: "#f5f5f5",
+                padding: "20px",
+                borderRadius: "8px",
+                marginTop: "10px",
+                border: "1px solid #e0e0e0",
+                lineHeight: "1.6",
+              }}
+              dangerouslySetInnerHTML={{ __html: challengeDays[selectedDay - 1].exercise?.guidance ?? "" }}
+            />
           )}
         </div>
-
         {/* Share Completion Section */}
         {selectedDay !== null && challengeDays[selectedDay - 1].completed && (
           <div
@@ -826,8 +858,3 @@ const ExerciseChallenge: React.FC = () => {
 };
 
 export default ExerciseChallenge;
-
-// Formatter function
-function formatResponse(response: string): string {
-  return response.replace(/\n/g, "<br />");
-}
