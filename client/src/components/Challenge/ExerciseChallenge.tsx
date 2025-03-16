@@ -38,7 +38,6 @@ const ExerciseChallenge: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [showSwitchDayModal, setShowSwitchDayModal] = useState<boolean>(false);
   const [pendingDaySelection, setPendingDaySelection] = useState<number | null>(null);
-
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
 
@@ -91,6 +90,12 @@ const ExerciseChallenge: React.FC = () => {
     }
 
     setIsLoading(false);
+  };
+
+  // function for audio feedback
+  const playSuccessSound = () => {
+    const audio = new Audio("/public/success-sound.mp3");
+    audio.play().catch(error => console.log("Audio playback error:", error));
   };
 
   const createNewChallenge = async (storageKey: string) => {
