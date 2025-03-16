@@ -9,7 +9,6 @@ import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
 import Profile from "./components/Profile/Profile";
 import Dashboard from "./components/Dashboard/Dashboard";
-// import ExercisesList from "./components/ExercisesList";
 import ExerciseChallenge from "./components/ExerciseChallenge";
 
 const firebaseConfig = {

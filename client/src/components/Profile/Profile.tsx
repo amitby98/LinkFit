@@ -32,6 +32,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [favoritePosts, setFavoritePosts] = useState<IPost[]>([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
   const [activeTab, setActiveTab] = useState<"posts" | "favorites">("posts");
+  const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -55,19 +56,20 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   }, [activeTab, user?._id]);
 
+  // Modify the fetchUserPosts function to store who the posts belong to
   const fetchUserPosts = async () => {
     setIsLoadingPosts(true);
     try {
-      // Determine which user's posts to fetch
       const targetUserId = userId || user?._id;
-
       if (!targetUserId) {
         setIsLoadingPosts(false);
         return;
       }
-
       const { data } = await httpService.get<IPost[]>(`/post/user/${targetUserId}`);
       setPosts(data);
+      // Store whether we're viewing our own profile or someone else's
+      const isOwnProfile = targetUserId === user?._id;
+      setIsViewingOwnProfile(isOwnProfile);
     } catch (error) {
       console.error("Error fetching user posts:", error);
       setError("Failed to load posts");
@@ -377,13 +379,22 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
               </button>
 
               <div className='posts-container'>
-                {isLoadingPosts ? (
+                {/* {isLoadingPosts ? (
                   <div className='loading'>Loading posts...</div>
                 ) : posts.length > 0 ? (
                   user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />)
                 ) : (
                   <div className='empty-posts'>
                     <p>Nothing here yet — Share your first post and get started!</p>
+                  </div>
+                )} */}
+                {isLoadingPosts ? (
+                  <div className='loading'>Loading posts...</div>
+                ) : visiblePosts.length > 0 ? (
+                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />)
+                ) : (
+                  <div className='empty-posts'>
+                    <p>{isViewingOwnProfile ? "Nothing here yet — Share your first post and get started!" : "This user hasn't posted anything yet."}</p>
                   </div>
                 )}
               </div>
