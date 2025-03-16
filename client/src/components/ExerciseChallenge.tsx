@@ -22,7 +22,6 @@ interface DayChallenge {
 }
 
 const ExerciseChallenge: React.FC = () => {
-  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [challengeDays, setChallengeDays] = useState<DayChallenge[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [timer, setTimer] = useState<number>(0);
@@ -771,97 +770,97 @@ const ExerciseChallenge: React.FC = () => {
                     <p style={{ fontSize: "0.9rem", color: "#757575" }}>Completed on: {challengeDays[selectedDay - 1].date || "Unknown date"}</p>
                   </div>
                 )}
+                {/* OpenAI Guidance Section */}
+                <div style={{ marginTop: "30px" }}>
+                  <h3
+                    style={{
+                      fontSize: "1.2rem",
+                      marginBottom: "15px",
+                      borderBottom: "1px solid #e0e0e0",
+                      paddingBottom: "8px",
+                    }}>
+                    Get Exercise Guidance
+                  </h3>
+
+                  <form
+                    onSubmit={handleGuidanceSubmit}
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      marginBottom: "20px",
+                    }}>
+                    <input
+                      type='text'
+                      placeholder={`Ask anything about ${selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name : ""}...`}
+                      name='prompt'
+                      style={{
+                        flex: "1",
+                        padding: "10px 15px",
+                        border: "1px solid #e0e0e0",
+                        borderRadius: "4px",
+                        fontSize: "1rem",
+                      }}
+                    />
+                    <button
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#1976d2",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "1rem",
+                      }}>
+                      Get Guidance
+                    </button>
+                  </form>
+
+                  {selectedDay !== null && challengeDays[selectedDay - 1].exercise?.guidance && (
+                    <div
+                      style={{
+                        backgroundColor: "#f5f5f5",
+                        padding: "20px",
+                        borderRadius: "8px",
+                        marginTop: "10px",
+                        border: "1px solid #e0e0e0",
+                        lineHeight: "1.6",
+                      }}
+                      dangerouslySetInnerHTML={{ __html: challengeDays[selectedDay - 1].exercise?.guidance ?? "" }}
+                    />
+                  )}
+                </div>
+                {/* Share Completion Section */}
+                {selectedDay !== null && challengeDays[selectedDay - 1].completed && (
+                  <div
+                    style={{
+                      marginTop: "2rem",
+                      backgroundColor: "#e3f2fd",
+                      padding: "20px",
+                      borderRadius: "10px",
+                      textAlign: "center",
+                    }}>
+                    <h2 style={{ color: "#1565c0", marginBottom: "10px" }}>Share Your Achievement</h2>
+                    <p style={{ marginBottom: "15px" }}>{shareMessage}</p>
+                    <button
+                      onClick={shareCompletion}
+                      style={{
+                        padding: "12px 25px",
+                        backgroundColor: "#1565c0",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "30px",
+                        cursor: "pointer",
+                        fontSize: "1rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}>
+                      <span>Share on Social Media</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
-        ;{/* OpenAI Guidance Section */}
-        <div style={{ marginTop: "30px" }}>
-          <h3
-            style={{
-              fontSize: "1.2rem",
-              marginBottom: "15px",
-              borderBottom: "1px solid #e0e0e0",
-              paddingBottom: "8px",
-            }}>
-            Get Exercise Guidance
-          </h3>
-
-          <form
-            onSubmit={handleGuidanceSubmit}
-            style={{
-              display: "flex",
-              gap: "10px",
-              marginBottom: "20px",
-            }}>
-            <input
-              type='text'
-              placeholder={`Ask anything about ${selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name : ""}...`}
-              name='prompt'
-              style={{
-                flex: "1",
-                padding: "10px 15px",
-                border: "1px solid #e0e0e0",
-                borderRadius: "4px",
-                fontSize: "1rem",
-              }}
-            />
-            <button
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#1976d2",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "1rem",
-              }}>
-              Get Guidance
-            </button>
-          </form>
-
-          {selectedDay !== null && challengeDays[selectedDay - 1].exercise?.guidance && (
-            <div
-              style={{
-                backgroundColor: "#f5f5f5",
-                padding: "20px",
-                borderRadius: "8px",
-                marginTop: "10px",
-                border: "1px solid #e0e0e0",
-                lineHeight: "1.6",
-              }}
-              dangerouslySetInnerHTML={{ __html: challengeDays[selectedDay - 1].exercise?.guidance ?? "" }}
-            />
-          )}
-        </div>
-        {/* Share Completion Section */}
-        {selectedDay !== null && challengeDays[selectedDay - 1].completed && (
-          <div
-            style={{
-              marginTop: "2rem",
-              backgroundColor: "#e3f2fd",
-              padding: "20px",
-              borderRadius: "10px",
-              textAlign: "center",
-            }}>
-            <h2 style={{ color: "#1565c0", marginBottom: "10px" }}>Share Your Achievement</h2>
-            <p style={{ marginBottom: "15px" }}>{shareMessage}</p>
-            <button
-              onClick={shareCompletion}
-              style={{
-                padding: "12px 25px",
-                backgroundColor: "#1565c0",
-                color: "white",
-                border: "none",
-                borderRadius: "30px",
-                cursor: "pointer",
-                fontSize: "1rem",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-              }}>
-              <span>Share on Social Media</span>
-            </button>
           </div>
         )}
       </div>
