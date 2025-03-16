@@ -5,8 +5,8 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import "./HomePage.scss";
 import CloseMenu from "/src/assets/react.svg";
 import MenuIcon from "/src/assets/menu.svg";
-import homeVideo from "/src/pics/homeVideo.mp4";
-import logo from "/src/pics/logo.png";
+import homeVideo from "/homeVideo.mp4";
+import logo from "/logo.png";
 
 const HomePage = () => {
   const [click, setClick] = useState(false);
