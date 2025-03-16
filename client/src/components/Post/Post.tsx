@@ -135,30 +135,22 @@ export function Post({
     setShowDeleteModal(false);
   };
 
+  const navigateToUserProfile = (userId: string) => {
+    if (!isEditing) {
+      navigate(`/profile/${userId}`);
+    }
+  };
+
   return (
     <div key={post._id} className='post-card'>
-      <div className='post-header'>
-        <img src={post.user.profilePicture} alt={`${post.user.username}'s profile`} className='post-avatar' onClick={() => navigate(`/profile/${post.user._id}`)} />
+      <div className='post-header' onClick={() => navigateToUserProfile(post.user._id)}>
+        <img src={post.user?.profilePicture || "/default-avatar.png"} alt={`${post.user?.username || "User"}'s profile`} className='post-avatar' onClick={() => post.user && navigateToUserProfile(post.user._id)} />
         <div className='post-user-info'>
           <h3 className='post-username' onClick={() => navigate(`/profile/${post.user._id}`)}>
             {post.user.username}
           </h3>
           <p className='post-date'>{formatDate(post.createdAt)}</p>
         </div>
-
-        {user._id === post.user._id && (
-          <>
-            <button
-              onClick={() => {
-                setIsEditing(isEditing => !isEditing);
-                setEditedPost(post);
-              }}
-            >
-              edit
-            </button>
-            <button onClick={() => setShowDeleteModal(true)}>delete</button>
-          </>
-        )}
       </div>
       <div className='post-content'>
         {post.body && !isEditing && <p className='post-text'>{post.body}</p>}
@@ -240,8 +232,7 @@ export function Post({
               onSubmit={e => {
                 e.preventDefault();
                 handleAddComment(post._id);
-              }}
-            >
+              }}>
               <input type='text' placeholder='Write a comment...' value={newComment[post._id] || ""} onChange={e => onCommentInputChange(post._id, e.target.value)} className='comment-input' />
               <button type='submit' className='send-comment-btn' disabled={!newComment[post._id]?.trim()}>
                 <FontAwesomeIcon icon={faPaperPlane} />
