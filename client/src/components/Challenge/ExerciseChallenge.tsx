@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
-import AlertModal from "../AlertModal";
+import AlertModal from "../AlertModal/AlertModal";
 import "./ExerciseChallenge.scss";
 
 interface Exercise {
