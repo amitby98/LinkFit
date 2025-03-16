@@ -63,6 +63,22 @@
     background-color: #4caf50;
     border-radius: 6px;
     transition: width 0.3s ease;
+
+    &.progress-red {
+      background-color: #ff4d4d;
+    }
+
+    &.progress-orange {
+      background-color: #ff9933;
+    }
+
+    &.progress-yellow {
+      background-color: #ffcc00;
+    }
+
+    &.progress-green {
+      background-color: #66cc33;
+    }
   }
 }
 

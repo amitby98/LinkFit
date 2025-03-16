@@ -168,6 +168,7 @@ const ExerciseChallenge: React.FC = () => {
       updatedDays[selectedDay - 1].timeSpent = timer;
 
       setChallengeDays(updatedDays);
+      playSuccessSound();
 
       // Get the current user ID from localStorage
       const token = localStorage.getItem("token");
@@ -552,8 +553,13 @@ const ExerciseChallenge: React.FC = () => {
           </div>
         </div>
         {/* Progress bar */}
+        {/* Progress bar with class-based styling */}
         <div className='progress-bar'>
-          <div className='progress-fill' style={{ width: `${Math.floor((challengeDays.filter(day => day.completed).length / 100) * 100)}%` }} />
+          <div
+            className={`progress-fill 
+                ${progress < 25 ? "progress-red" : progress < 50 ? "progress-orange" : progress < 75 ? "progress-yellow" : "progress-green"}`}
+            style={{ width: `${progress}%` }}
+          />
         </div>
         {/* Challenge Days Grid */}
         <div className='days-grid'>
