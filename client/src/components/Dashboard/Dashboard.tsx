@@ -37,12 +37,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const ITEMS_PER_PAGE = 10; // Match this with your backend itemsPerPage
+  const ITEMS_PER_PAGE = 10;
 
-  // Improved fetchPosts function that returns a Promise so we can know when it completes
   const fetchPosts = useCallback(
     async (pageNum: number) => {
-      if (loadingMore) return false; // Prevent multiple simultaneous requests
+      if (loadingMore) return false;
 
       try {
         setLoadingMore(true);
@@ -60,7 +59,6 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
           });
         } else {
           setPosts(prev => {
-            // Verify there are no duplicate posts
             const newPosts = data.filter(newPost => !prev.find(post => post._id === newPost._id));
             return [...prev, ...newPosts];
           });
@@ -104,7 +102,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
 
           isFetching = false;
         }
-      }, 300); // 300ms debounce
+      }, 300);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -129,7 +127,6 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
       .get<IPost[]>(`/post?page=1`)
       .then(({ data }) => {
         setPosts(data);
-        // Set hasNextPage based on the number of posts received
         setHasNextPage(data.length === ITEMS_PER_PAGE);
       })
       .catch(err => {

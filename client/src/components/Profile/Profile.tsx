@@ -263,7 +263,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     return <div className='loading-container'>Loading profile...</div>;
   }
 
-  ////////////////////:
   const handleAddComment = async (postId: string) => {
     if (!newComment[postId]?.trim()) return;
 
@@ -379,15 +378,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
               </button>
 
               <div className='posts-container'>
-                {/* {isLoadingPosts ? (
-                  <div className='loading'>Loading posts...</div>
-                ) : posts.length > 0 ? (
-                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />)
-                ) : (
-                  <div className='empty-posts'>
-                    <p>Nothing here yet — Share your first post and get started!</p>
-                  </div>
-                )} */}
                 {isLoadingPosts ? (
                   <div className='loading'>Loading posts...</div>
                 ) : visiblePosts.length > 0 ? (

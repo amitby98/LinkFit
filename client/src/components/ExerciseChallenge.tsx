@@ -40,7 +40,6 @@ const ExerciseChallenge: React.FC = () => {
     initializeChallenge();
   }, []);
 
-  // Modify the initializeChallenge function to use user-specific storage
   const initializeChallenge = async () => {
     setIsLoading(true);
 
@@ -88,7 +87,6 @@ const ExerciseChallenge: React.FC = () => {
     setIsLoading(false);
   };
 
-  // Update createNewChallenge to accept the storage key
   const createNewChallenge = async (storageKey: string) => {
     try {
       const days: DayChallenge[] = Array.from({ length: 100 }, (_, i) => {
@@ -110,7 +108,6 @@ const ExerciseChallenge: React.FC = () => {
     }
   };
 
-  // Update loadExerciseForDay to use the user-specific storage key
   const loadExerciseForDay = async (day: number, currentDays: DayChallenge[] = challengeDays) => {
     const dayIndex = day - 1;
     if (currentDays[dayIndex]?.exercise?.name) {
@@ -156,7 +153,7 @@ const ExerciseChallenge: React.FC = () => {
     }
   };
 
-  // Similar changes are needed for completeExercise and other functions that use localStorage
+  // Mark a day's exercise as completed
   const completeExercise = () => {
     if (selectedDay !== null) {
       const updatedDays = [...challengeDays];
@@ -197,85 +194,6 @@ const ExerciseChallenge: React.FC = () => {
       }
     }
   };
-  //   const initializeChallenge = async () => {
-  //     setIsLoading(true);
-
-  //     const savedChallenge = localStorage.getItem("exerciseChallenge");
-
-  //     if (savedChallenge) {
-  //       const parsed = JSON.parse(savedChallenge);
-  //       setChallengeDays(parsed);
-
-  //       const today = new Date().toLocaleDateString();
-  //       const todayCompletedDay = parsed.findIndex((day: DayChallenge) => day.date === today && day.completed);
-
-  //       if (todayCompletedDay !== -1) {
-  //         const selectedDayNumber = todayCompletedDay + 1;
-  //         setSelectedDay(selectedDayNumber);
-  //         loadExerciseForDay(selectedDayNumber, parsed);
-  //       } else {
-  //         const nextIncompleteDay = parsed.findIndex((day: DayChallenge) => !day.completed);
-  //         if (nextIncompleteDay !== -1) {
-  //           const selectedDayNumber = nextIncompleteDay + 1;
-  //           setSelectedDay(selectedDayNumber);
-  //           loadExerciseForDay(selectedDayNumber, parsed);
-  //         }
-  //       }
-  //     } else {
-  //       await createNewChallenge();
-  //     }
-
-  //     setIsLoading(false);
-  //   };
-
-  //   const createNewChallenge = async () => {
-  //     try {
-  //       const days: DayChallenge[] = Array.from({ length: 100 }, (_, i) => {
-  //         const randomMuscleGroup = muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
-  //         return {
-  //           day: i + 1,
-  //           muscleGroup: randomMuscleGroup,
-  //           exerciseId: `exercise_placeholder_${i}`,
-  //           completed: false,
-  //         };
-  //       });
-
-  //       setChallengeDays(days);
-  //       localStorage.setItem("exerciseChallenge", JSON.stringify(days));
-  //       setSelectedDay(1);
-  //       await loadExerciseForDay(1, days);
-  //     } catch (error) {
-  //       console.error("Error creating challenge:", error);
-  //     }
-  //   };
-
-  //   const loadExerciseForDay = async (day: number, currentDays: DayChallenge[] = challengeDays) => {
-  //     const dayIndex = day - 1;
-  //     if (currentDays[dayIndex]?.exercise?.name) {
-  //       return;
-  //     }
-  //     setIsLoadingExercise(true);
-  //     try {
-  //       const muscleGroup = currentDays[dayIndex].muscleGroup || muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
-  //       const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscleGroup}`);
-  //       const randomIndex = Math.floor(Math.random() * response.data.length);
-  //       const exercise = response.data[randomIndex];
-  //       const updatedDays = [...currentDays];
-  //       updatedDays[dayIndex] = {
-  //         ...updatedDays[dayIndex],
-  //         exercise,
-  //         exerciseId: exercise.name,
-  //         muscleGroup,
-  //       };
-
-  //       setChallengeDays(updatedDays);
-  //       localStorage.setItem("exerciseChallenge", JSON.stringify(updatedDays));
-  //     } catch (error) {
-  //       console.error(`Error loading exercise for day ${day}:`, error);
-  //     } finally {
-  //       setIsLoadingExercise(false);
-  //     }
-  //   };
 
   const selectDay = async (day: number) => {
     // If timer is running for current day, confirm before switching
@@ -297,45 +215,6 @@ const ExerciseChallenge: React.FC = () => {
     const completedCount = challengeDays.filter(day => day.completed).length;
     setProgress(Math.floor((completedCount / 100) * 100));
   }, [challengeDays]);
-
-  // Initialize 100-day challenge
-  const initializeChallengeDays = (exercises: Exercise[]) => {
-    // Load saved challenge data from localStorage if available
-    const savedChallenge = localStorage.getItem("exerciseChallenge");
-
-    if (savedChallenge) {
-      const parsed = JSON.parse(savedChallenge);
-      setChallengeDays(parsed);
-
-      // If there's a day that was completed today, select it automatically
-      const today = new Date().toLocaleDateString();
-      const todayCompletedDay = parsed.findIndex((day: DayChallenge) => day.date === today && day.completed);
-
-      if (todayCompletedDay !== -1) {
-        setSelectedDay(todayCompletedDay + 1);
-      } else {
-        // Find the first incomplete day
-        const nextIncompleteDay = parsed.findIndex((day: DayChallenge) => !day.completed);
-        if (nextIncompleteDay !== -1) {
-          setSelectedDay(nextIncompleteDay + 1);
-        }
-      }
-    } else {
-      // Create new challenge with randomly assigned exercises
-      const shuffledExercises = [...exercises].sort(() => Math.random() - 0.5);
-      const days: DayChallenge[] = Array.from({ length: 100 }, (_, i) => ({
-        day: i + 1,
-        exercise: shuffledExercises[i % shuffledExercises.length] || null,
-        completed: false,
-      }));
-
-      setChallengeDays(days);
-      localStorage.setItem("exerciseChallenge", JSON.stringify(days));
-
-      // Auto-select day 1
-      setSelectedDay(1);
-    }
-  };
 
   // Clean up interval on component unmount
   useEffect(() => {
@@ -379,31 +258,6 @@ const ExerciseChallenge: React.FC = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
-
-  // Mark a day's exercise as completed
-  //   const completeExercise = () => {
-  //     if (selectedDay !== null) {
-  //       const updatedDays = [...challengeDays];
-  //       updatedDays[selectedDay - 1].completed = true;
-  //       updatedDays[selectedDay - 1].date = new Date().toLocaleDateString();
-  //       updatedDays[selectedDay - 1].timeSpent = timer;
-
-  //       setChallengeDays(updatedDays);
-  //       localStorage.setItem("exerciseChallenge", JSON.stringify(updatedDays));
-
-  //       // Prepare share message with emoji based on muscle group
-  //       const exercise = updatedDays[selectedDay - 1].exercise;
-  //       const muscleGroup = determineMuscleGroup(exercise?.name || "");
-  //       const emoji = getMuscleGroupEmoji(muscleGroup);
-
-  //       setShareMessage(`${emoji} Day ${selectedDay}/100 Complete! ${emoji}\nI finished "${exercise?.name}" in ${formatTime(timer)}!\n#100DayFitnessChallenge`);
-
-  //       // Stop timer if it's running
-  //       if (isRunning) {
-  //         toggleTimer();
-  //       }
-  //     }
-  //   };
 
   // Helper function to determine muscle group from exercise name
   const determineMuscleGroup = (exerciseName: string): string => {
@@ -481,14 +335,6 @@ const ExerciseChallenge: React.FC = () => {
   };
 
   // Reset challenge when confirmed in the modal
-  //   const confirmReset = () => {
-  //     localStorage.removeItem("exerciseChallenge");
-  //     initializeChallengeDays(allExercises);
-  //     resetTimer();
-  //     setShareMessage("");
-  //     setShowResetModal(false);
-  //   };
-  // And also update the confirmReset function:
   const confirmReset = () => {
     // Get the current user ID from localStorage
     const token = localStorage.getItem("token");
