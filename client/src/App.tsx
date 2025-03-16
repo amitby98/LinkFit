@@ -9,7 +9,7 @@ import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
 import Profile from "./components/Profile/Profile";
 import Dashboard from "./components/Dashboard/Dashboard";
-import ExerciseChallenge from "./components/ExerciseChallenge";
+import ExerciseChallenge from "./components/Challenge/ExerciseChallenge";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdZM4I2vlLtKPzIdl810TiFE5UxI6PJ30",

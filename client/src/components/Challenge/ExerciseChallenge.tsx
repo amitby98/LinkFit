@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
-import NavBar from "./NavBar/NavBar";
-import { httpService } from "../httpService";
+import NavBar from "../NavBar/NavBar";
+import { httpService } from "../../httpService";
+import AlertModal from "../AlertModal";
+import "./ExerciseChallenge.scss";
 
 interface Exercise {
   name: string;
@@ -31,6 +33,11 @@ const ExerciseChallenge: React.FC = () => {
   const [progress, setProgress] = useState<number>(0);
   const [showResetModal, setShowResetModal] = useState<boolean>(false);
   const [isLoadingExercise, setIsLoadingExercise] = useState<boolean>(false);
+  const [showDayResetModal, setShowDayResetModal] = useState<boolean>(false);
+  const [showAlertModal, setShowAlertModal] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [showSwitchDayModal, setShowSwitchDayModal] = useState<boolean>(false);
+  const [pendingDaySelection, setPendingDaySelection] = useState<number | null>(null);
 
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
@@ -195,18 +202,40 @@ const ExerciseChallenge: React.FC = () => {
   };
 
   const selectDay = async (day: number) => {
-    // If timer is running for current day, confirm before switching
+    // If timer is running for current day, show confirmation modal
     if (isRunning && selectedDay !== null) {
-      if (!window.confirm("Timer is running. Switch days anyway?")) {
-        return;
-      }
-      resetTimer();
+      setPendingDaySelection(day);
+      setShowSwitchDayModal(true);
+      return;
     }
+
+    // Otherwise proceed with day selection directly
+    completeSelectDay(day);
+  };
+
+  // This function handles the actual day selection after confirmation
+  const completeSelectDay = async (day: number) => {
     setSelectedDay(day);
     resetTimer();
     setShareMessage("");
     // Load the exercise for the selected day if needed
     await loadExerciseForDay(day);
+  };
+
+  // Handler for confirmation from modal
+  const confirmDaySwitch = () => {
+    if (pendingDaySelection !== null) {
+      resetTimer();
+      completeSelectDay(pendingDaySelection);
+      setPendingDaySelection(null);
+    }
+    setShowSwitchDayModal(false);
+  };
+
+  // Handler for cancellation from modal
+  const cancelDaySwitch = () => {
+    setPendingDaySelection(null);
+    setShowSwitchDayModal(false);
   };
 
   // Calculate and update progress whenever challengeDays changes
@@ -425,62 +454,19 @@ const ExerciseChallenge: React.FC = () => {
     if (!showResetModal) return null;
 
     return (
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 1000,
-        }}>
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "24px",
-            width: "90%",
-            maxWidth: "450px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-            animation: "fadeInScale 0.3s ease-out",
-          }}>
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
-            <div style={{ fontSize: "28px", color: "#f44336", marginBottom: "8px" }}>⚠️</div>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "4px" }}>Reset Challenge?</h2>
-            <p style={{ fontSize: "1rem", color: "#555", marginTop: "10px" }}>Are you sure you want to reset your 100-day challenge? All progress will be lost.</p>
+      <div className='modal-overlay'>
+        <div className='modal-content'>
+          <div className='modal-header'>
+            <div className='modal-icon'>⚠️</div>
+            <h2 className='modal-title'>Reset Challenge?</h2>
+            <p className='modal-message'>Are you sure you want to reset your 100-day challenge? All progress will be lost.</p>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "24px" }}>
-            <button
-              onClick={closeResetModal}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#e0e0e0",
-                color: "#333",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "1rem",
-                fontWeight: "500",
-              }}>
+          <div className='modal-actions'>
+            <button onClick={closeResetModal} className='modal-button cancel-button'>
               Cancel
             </button>
-            <button
-              onClick={confirmReset}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#f44336",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "1rem",
-                fontWeight: "500",
-              }}>
+            <button onClick={confirmReset} className='modal-button confirm-button'>
               Reset Challenge
             </button>
           </div>
@@ -489,12 +475,42 @@ const ExerciseChallenge: React.FC = () => {
     );
   };
 
+  const resetDay = () => {
+    if (selectedDay !== null) {
+      const updatedDays = [...challengeDays];
+      updatedDays[selectedDay - 1].completed = false;
+      updatedDays[selectedDay - 1].date = undefined;
+      updatedDays[selectedDay - 1].timeSpent = 0;
+
+      setChallengeDays(updatedDays);
+
+      const token = localStorage.getItem("token");
+      let userId = "";
+
+      if (token) {
+        try {
+          const decoded = JSON.parse(atob(token.split(".")[1]));
+          userId = decoded.id || "";
+        } catch (error) {
+          console.error("Error decoding token:", error);
+        }
+      }
+
+      const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
+      localStorage.setItem(storageKey, JSON.stringify(updatedDays));
+
+      resetTimer();
+      setShareMessage("");
+      setShowDayResetModal(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <>
         <NavBar />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "70vh" }}>
-          <div style={{ textAlign: "center" }}>
+        <div className='loading-container'>
+          <div>
             <h2>Loading your 100-day challenge...</h2>
             <p>Preparing your personalized workout plan</p>
           </div>
@@ -507,128 +523,52 @@ const ExerciseChallenge: React.FC = () => {
     <>
       <NavBar />
 
-      <div className='challenge-container' style={{ margin: "2rem", fontFamily: "Arial, sans-serif" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-          }}>
-          <h1 style={{ margin: 0 }}>100-Day Fitness Challenge</h1>
-          <button
-            onClick={openResetModal}
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#f44336",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "0.8rem",
-            }}>
+      <div className='challenge-container'>
+        <div className='challenge-header'>
+          <h1>100-Day Fitness Challenge</h1>
+          <button onClick={openResetModal} className='reset-button'>
             Reset Challenge
           </button>
         </div>
         {/* Challenge Progress Stats */}
-        <div
-          style={{
-            padding: "15px",
-            backgroundColor: "#e8f5e9",
-            borderRadius: "10px",
-            marginBottom: "2rem",
-          }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-around",
-              flexWrap: "wrap",
-              gap: "10px",
-            }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>{challengeDays.filter(day => day.completed).length}</div>
+        <div className='challenge-stats'>
+          <div className='stats-container'>
+            <div className='stat-item'>
+              <div className='stat-value'>{challengeDays.filter(day => day.completed).length}</div>
               <div>Days Completed</div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>{100 - challengeDays.filter(day => day.completed).length}</div>
+            <div className='stat-item'>
+              <div className='stat-value'>{100 - challengeDays.filter(day => day.completed).length}</div>
               <div>Days Remaining</div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>{progress}%</div>
+            <div className='stat-item'>
+              <div className='stat-value'>{progress}%</div>
               <div>Complete</div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>{calculateStreak()}</div>
+            <div className='stat-item'>
+              <div className='stat-value'>{calculateStreak()}</div>
               <div>Day Streak</div>
             </div>
           </div>
         </div>
         {/* Progress bar */}
-        <div
-          style={{
-            height: "12px",
-            backgroundColor: "#e0e0e0",
-            borderRadius: "6px",
-            margin: "15px 0",
-            overflow: "hidden",
-          }}>
-          <div
-            style={{
-              height: "100%",
-              width: `${Math.floor((challengeDays.filter(day => day.completed).length / 100) * 100)}%`,
-              backgroundColor: "#4caf50",
-              borderRadius: "6px",
-            }}
-          />
+        <div className='progress-bar'>
+          <div className='progress-fill' style={{ width: `${Math.floor((challengeDays.filter(day => day.completed).length / 100) * 100)}%` }} />
         </div>
         {/* Challenge Days Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(60px, 1fr))",
-            gap: "10px",
-            marginBottom: "2rem",
-          }}>
+        <div className='days-grid'>
           {challengeDays.slice(0, 25).map(day => (
-            <div
-              key={day.day}
-              onClick={() => selectDay(day.day)}
-              style={{
-                padding: "10px",
-                textAlign: "center",
-                backgroundColor: selectedDay === day.day ? "#bbdefb" : day.completed ? "#c8e6c9" : "#f5f5f5",
-                borderRadius: "8px",
-                border: selectedDay === day.day ? "2px solid #1976d2" : "1px solid #e0e0e0",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}>
-              <div style={{ fontSize: "0.9rem", fontWeight: "bold" }}>Day {day.day}</div>
+            <div key={day.day} onClick={() => selectDay(day.day)} className={`day-item ${selectedDay === day.day ? "selected" : ""} ${day.completed ? "completed" : ""}`}>
+              <div className='day-number'>Day {day.day}</div>
               <div>{day.completed ? "✅" : "🏋️"}</div>
             </div>
           ))}
         </div>
         {/* Showing more days in a scrollable container */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(60px, 1fr))",
-            gap: "10px",
-            marginBottom: "2rem",
-          }}>
+        <div className='days-grid'>
           {challengeDays.slice(25, 100).map(day => (
-            <div
-              key={day.day}
-              onClick={() => selectDay(day.day)}
-              style={{
-                padding: "10px",
-                textAlign: "center",
-                backgroundColor: selectedDay === day.day ? "#bbdefb" : day.completed ? "#c8e6c9" : "#f5f5f5",
-                borderRadius: "8px",
-                border: selectedDay === day.day ? "2px solid #1976d2" : "1px solid #e0e0e0",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}>
-              <div style={{ fontSize: "0.9rem", fontWeight: "bold" }}>Day {day.day}</div>
+            <div key={day.day} onClick={() => selectDay(day.day)} className={`day-item ${selectedDay === day.day ? "selected" : ""} ${day.completed ? "completed" : ""}`}>
+              <div className='day-number'>Day {day.day}</div>
               <div>{day.completed ? "✅" : "🏋️"}</div>
             </div>
           ))}
@@ -640,221 +580,69 @@ const ExerciseChallenge: React.FC = () => {
           </div>
         ) : (
           <div>
-            <h3 style={{ fontSize: "1.5rem", color: "#1976d2" }}>{selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name ?? "No exercise assigned" : "No exercise assigned"}</h3>
+            <h3 className='exercise-title'>{selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name ?? "No exercise assigned" : "No exercise assigned"}</h3>
 
-            <p
-              style={{
-                backgroundColor: "#efefef",
-                padding: "8px 15px",
-                borderRadius: "20px",
-                display: "inline-block",
-                fontSize: "0.9rem",
-              }}>
-              Equipment: {selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.equipment || "None required" : "None required"}
-            </p>
+            <p className='equipment-tag'>Equipment: {selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.equipment || "None required" : "None required"}</p>
 
             {/* Two column layout for larger screens */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: "20px",
-                marginTop: "20px",
-              }}>
+            <div className='exercise-content'>
               {/* Left column - Image */}
-              <div style={{ flex: "1 1 350px" }}>
+              <div className='exercise-image'>
                 {selectedDay !== null && challengeDays[selectedDay - 1]?.exercise?.gifUrl && (
-                  <div
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      marginBottom: "15px",
-                      borderRadius: "10px",
-                      overflow: "hidden",
-                    }}>
-                    <img
-                      src={challengeDays[selectedDay - 1].exercise?.gifUrl}
-                      alt={challengeDays[selectedDay - 1].exercise?.name}
-                      style={{
-                        width: "100%",
-                        borderRadius: "10px",
-                        objectFit: "cover",
-                      }}
-                    />
+                  <div className='image-container'>
+                    <img src={challengeDays[selectedDay - 1].exercise?.gifUrl} alt={challengeDays[selectedDay - 1].exercise?.name} />
                   </div>
                 )}
               </div>
 
               {/* Right column - Timer and controls */}
-              <div style={{ flex: "1 1 350px" }}>
-                <div
-                  style={{
-                    backgroundColor: "#e0f7fa",
-                    padding: "20px",
-                    borderRadius: "10px",
-                    marginBottom: "20px",
-                    textAlign: "center",
-                  }}>
-                  <div
-                    style={{
-                      fontSize: "2.5rem",
-                      fontWeight: "bold",
-                      marginBottom: "15px",
-                      fontFamily: "monospace",
-                    }}>
-                    {formatTime(timer)}
-                  </div>
+              <div className='exercise-controls'>
+                <div className='timer-container'>
+                  <div className='timer-display'>{formatTime(timer)}</div>
 
-                  <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
-                    <button
-                      onClick={toggleTimer}
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor: isRunning ? "#f44336" : "#4caf50",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "1rem",
-                        transition: "background-color 0.3s",
-                      }}>
+                  <div className='timer-buttons'>
+                    <button onClick={toggleTimer} className={`timer-button ${isRunning ? "pause" : "start"}`}>
                       {isRunning ? "Pause" : "Start"}
                     </button>
 
-                    <button
-                      onClick={resetTimer}
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#757575",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "1rem",
-                      }}>
+                    <button onClick={resetTimer} className='timer-button reset'>
                       Reset
                     </button>
                   </div>
                 </div>
-
                 {selectedDay !== null && !challengeDays[selectedDay - 1].completed && (
-                  <button
-                    onClick={completeExercise}
-                    style={{
-                      width: "100%",
-                      padding: "15px",
-                      backgroundColor: "#2e7d32",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "1.1rem",
-                      fontWeight: "bold",
-                      marginBottom: "20px",
-                    }}>
+                  <button onClick={completeExercise} className='complete-button'>
                     Complete Exercise
                   </button>
                 )}
-
                 {selectedDay !== null && challengeDays[selectedDay - 1].completed && (
-                  <div
-                    style={{
-                      backgroundColor: "#e8f5e9",
-                      padding: "15px",
-                      borderRadius: "5px",
-                      marginBottom: "20px",
-                      textAlign: "center",
-                    }}>
-                    <p style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#2e7d32" }}>✅ Completed in {formatTime(challengeDays[selectedDay - 1].timeSpent || 0)}</p>
-                    <p style={{ fontSize: "0.9rem", color: "#757575" }}>Completed on: {challengeDays[selectedDay - 1].date || "Unknown date"}</p>
-                  </div>
+                  <>
+                    <div className='completion-info'>
+                      <p className='completion-status'>✅ Completed in {formatTime(challengeDays[selectedDay - 1].timeSpent || 0)}</p>
+                      <p className='completion-date'>Completed on: {challengeDays[selectedDay - 1].date || "Unknown date"}</p>
+                    </div>
+                    <button onClick={() => setShowDayResetModal(true)} className='reset-day-button'>
+                      Reset This Day
+                    </button>
+                  </>
                 )}
                 {/* OpenAI Guidance Section */}
-                <div style={{ marginTop: "30px" }}>
-                  <h3
-                    style={{
-                      fontSize: "1.2rem",
-                      marginBottom: "15px",
-                      borderBottom: "1px solid #e0e0e0",
-                      paddingBottom: "8px",
-                    }}>
-                    Get Exercise Guidance
-                  </h3>
+                <div className='guidance-section'>
+                  <h3 className='guidance-title'>Get Exercise Guidance</h3>
 
-                  <form
-                    onSubmit={handleGuidanceSubmit}
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      marginBottom: "20px",
-                    }}>
-                    <input
-                      type='text'
-                      placeholder={`Ask anything about ${selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name : ""}...`}
-                      name='prompt'
-                      style={{
-                        flex: "1",
-                        padding: "10px 15px",
-                        border: "1px solid #e0e0e0",
-                        borderRadius: "4px",
-                        fontSize: "1rem",
-                      }}
-                    />
-                    <button
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#1976d2",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "1rem",
-                      }}>
-                      Get Guidance
-                    </button>
+                  <form onSubmit={handleGuidanceSubmit} className='guidance-form'>
+                    <input type='text' placeholder={`Ask anything about ${selectedDay !== null ? challengeDays[selectedDay - 1].exercise?.name : ""}...`} name='prompt' className='guidance-input' />
+                    <button className='guidance-button'>Get Guidance</button>
                   </form>
 
-                  {selectedDay !== null && challengeDays[selectedDay - 1].exercise?.guidance && (
-                    <div
-                      style={{
-                        backgroundColor: "#f5f5f5",
-                        padding: "20px",
-                        borderRadius: "8px",
-                        marginTop: "10px",
-                        border: "1px solid #e0e0e0",
-                        lineHeight: "1.6",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: challengeDays[selectedDay - 1].exercise?.guidance ?? "" }}
-                    />
-                  )}
+                  {selectedDay !== null && challengeDays[selectedDay - 1].exercise?.guidance && <div className='guidance-result' dangerouslySetInnerHTML={{ __html: challengeDays[selectedDay - 1].exercise?.guidance ?? "" }} />}
                 </div>
                 {/* Share Completion Section */}
                 {selectedDay !== null && challengeDays[selectedDay - 1].completed && (
-                  <div
-                    style={{
-                      marginTop: "2rem",
-                      backgroundColor: "#e3f2fd",
-                      padding: "20px",
-                      borderRadius: "10px",
-                      textAlign: "center",
-                    }}>
-                    <h2 style={{ color: "#1565c0", marginBottom: "10px" }}>Share Your Achievement</h2>
-                    <p style={{ marginBottom: "15px" }}>{shareMessage}</p>
-                    <button
-                      onClick={shareCompletion}
-                      style={{
-                        padding: "12px 25px",
-                        backgroundColor: "#1565c0",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "30px",
-                        cursor: "pointer",
-                        fontSize: "1rem",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "10px",
-                      }}>
+                  <div className='share-section'>
+                    <h2>Share Your Achievement</h2>
+                    <p>{shareMessage}</p>
+                    <button onClick={shareCompletion} className='share-button'>
                       <span>Share on Social Media</span>
                     </button>
                   </div>
@@ -868,19 +656,13 @@ const ExerciseChallenge: React.FC = () => {
       {/* Render the modal */}
       <ResetConfirmationModal />
 
-      {/* Add CSS animation for modal */}
-      <style>{`
-        @keyframes fadeInScale {
-          from {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
+      {/* Day Reset Modal */}
+      <AlertModal show={showDayResetModal} message={`Are you sure you want to reset day ${selectedDay}? The day's progress will be deleted.`} onConfirm={resetDay} onCancel={() => setShowDayResetModal(false)} confirmText='Reset Day' cancelText='Cancel' />
+
+      {/* Day Switching Modal */}
+      <AlertModal show={showSwitchDayModal} message='Timer is running. Switch days anyway?' onConfirm={confirmDaySwitch} onCancel={cancelDaySwitch} confirmText='Switch' cancelText='Cancel' />
+      {/* General Alert Modal */}
+      <AlertModal show={showAlertModal} message={alertMessage} onConfirm={() => setShowAlertModal(false)} onCancel={() => setShowAlertModal(false)} confirmText='Continue' cancelText='Cancel' />
     </>
   );
 };
