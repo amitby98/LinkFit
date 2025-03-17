@@ -6,6 +6,7 @@ import { authRouter } from "./routes/auth.router";
 import { userRouter } from "./routes/user.router";
 import { postRouter } from "./routes/post.router";
 import { exerciseRouter } from "./routes/exercises.router";
+import { commentRouter } from "./routes/comment.router";
 import { IncomingMessage, Server, ServerResponse } from "http";
 
 //Load environment variables
@@ -39,7 +40,7 @@ export const appPromise = new Promise<[Express, Server<typeof IncomingMessage, t
     app.use("/api/user", userRouter);
     app.use("/api/post", postRouter);
     app.use("/api/exercises", exerciseRouter);
-    // app.use("/user", userRouter);
+    app.use("/api/comment", commentRouter);
 
     setupSwagger(app);
     // Start Express server

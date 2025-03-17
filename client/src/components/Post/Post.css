@@ -56,3 +56,63 @@
 .delete-btn:hover {
   background-color: #c0392b;
 }
+
+.comment-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 5px;
+}
+
+.comment-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 0.8rem;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.comment-action-btn:hover {
+  color: #333;
+  background-color: #f0f0f0;
+}
+
+.edit-comment-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.edit-comment-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  width: 100%;
+}
+
+.edit-comment-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.save-comment-btn,
+.cancel-comment-btn {
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.save-comment-btn {
+  background-color: #3b5998;
+  color: white;
+  border: none;
+}
+
+.cancel-comment-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+}

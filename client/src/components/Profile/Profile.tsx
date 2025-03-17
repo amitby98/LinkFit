@@ -35,6 +35,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
   const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
+  const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(false);
   const { userId } = useParams();
 
   interface Badge {
@@ -49,15 +50,35 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     if (isLoadingUser) {
       return;
     }
+    const targetUserId = userId || user?._id;
 
-    if (user && user.email) {
-      fetchUserPosts();
-      fetchFavoritePosts();
+    if (targetUserId) {
+      fetchUserPosts(targetUserId);
+      setIsViewingOwnProfile(targetUserId === user?._id);
+
+      if (targetUserId !== user?._id) {
+        fetchUserDetails(targetUserId);
+      }
     } else {
-      // If no user prop, redirect to login
       navigate("/sign-up");
     }
-  }, [user, navigate, isLoadingUser]);
+  }, [userId, user, navigate, isLoadingUser]);
+
+  const [profileUser, setProfileUser] = useState<UserDetails | null>(null);
+  const [isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
+
+  const fetchUserDetails = async (targetUserId: string) => {
+    setIsLoadingProfileUser(true);
+    try {
+      const { data } = await httpService.get<UserDetails>(`/user/${targetUserId}`);
+      setProfileUser(data);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      setError("Failed to load user profile");
+    } finally {
+      setIsLoadingProfileUser(false);
+    }
+  };
 
   useEffect(() => {
     if (activeTab === "favorites" && user?._id) {
@@ -99,8 +120,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   };
 
-  // Modify the fetchUserPosts function to store who the posts belong to
-  const fetchUserPosts = async () => {
+  const fetchUserPosts = async (targetUserId?: string) => {
     setIsLoadingPosts(true);
     try {
       const targetUserId = userId || user?._id;
@@ -321,7 +341,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       }));
 
       // Refresh posts to show new comment
-      fetchUserPosts();
+      fetchUserPosts(userId || user?._id);
     } catch (error) {
       console.error("Error adding comment:", error);
       setError("Failed to add comment");
@@ -329,6 +349,8 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   };
 
   const visiblePosts = activeTab === "posts" ? posts : favoritePosts;
+  const displayUser = isViewingOwnProfile ? user : profileUser;
+
 
   const BadgeSharedModal = () => {
     if (!showBadgeSharedModal) return null;
@@ -346,6 +368,12 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     );
   };
 
+
+  function updateSinglePost(updatedPost: IPost): void {
+    setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
+    setFavoritePosts(prevFavoritePosts => prevFavoritePosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
+  }
+
   return (
     <>
       <NavBar />
@@ -355,10 +383,10 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
           <div className='profile-container'>
             <div className='profile-content'>
               <div className='profile-picture-container'>
-                {editedProfile ? (
+                {isViewingOwnProfile && editedProfile ? (
                   <>
                     <div className='profile-picture-edit'>
-                      <img src={imagePreview ?? (user?.profilePicture || "/default-avatar.png")} alt='Profile' className='profile-picture' />
+                      <img src={imagePreview ?? (displayUser?.profilePicture || "/default-avatar.png")} alt='Profile' className='profile-picture' />
                       <label className='profile-picture-upload'>
                         <FontAwesomeIcon icon={faCamera} />
                         <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
@@ -367,29 +395,31 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                     {validationErrors.profilePicture && <div className='validation-error'>{validationErrors.profilePicture}</div>}
                   </>
                 ) : (
-                  <img src={user?.profilePicture || "/default-avatar.png"} alt='Profile' className='profile-picture' />
+                  <img src={displayUser?.profilePicture || "/default-avatar.png"} alt='Profile' className='profile-picture' />
                 )}
               </div>
 
               <div className='profile-details'>
                 <div className='profile-title'>
-                  <h1>{user?.username}</h1>
-                  <div className='profile-actions'>
-                    {editedProfile ? (
-                      <button className='btn edit-btn' onClick={toggleEditMode}>
-                        <FontAwesomeIcon icon={faSave} /> Cancel
-                      </button>
-                    ) : (
-                      <button className='btn edit-btn' onClick={toggleEditMode}>
-                        <FontAwesomeIcon icon={faEdit} />
-                      </button>
-                    )}
-                  </div>
+                  <h1>{displayUser?.username}</h1>
+                  {isViewingOwnProfile && (
+                    <div className='profile-actions'>
+                      {editedProfile ? (
+                        <button className='btn edit-btn' onClick={toggleEditMode}>
+                          <FontAwesomeIcon icon={faSave} /> Cancel
+                        </button>
+                      ) : (
+                        <button className='btn edit-btn' onClick={toggleEditMode}>
+                          <FontAwesomeIcon icon={faEdit} /> 
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {error && <div className='error-message'>{error}</div>}
 
-                {editedProfile ? (
+                {isViewingOwnProfile && editedProfile ? (
                   <div className='profile-form'>
                     <div className='form-group'>
                       <label>Username</label>
@@ -407,10 +437,10 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 ) : (
                   <>
                     <div className='profile-info'>
-                      {user?.bio ? (
+                      {displayUser?.bio ? (
                         <div className='bio'>
                           <h3>Bio</h3>
-                          <p>{user?.bio}</p>
+                          <p>{displayUser?.bio}</p>
                         </div>
                       ) : (
                         <div className='bio'>
@@ -449,17 +479,19 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
           <div className='profile-container'>
             <div className='profile-tabs'>
               <button className={`tab-btn ${activeTab === "posts" ? "active" : ""}`} onClick={() => setActiveTab("posts")}>
-                <FontAwesomeIcon icon={faImage} /> My Posts
+                <FontAwesomeIcon icon={faImage} /> {isViewingOwnProfile ? "My Posts" : "Posts"}
               </button>
-              <button className={`tab-btn ${activeTab === "favorites" ? "active" : ""}`} onClick={() => setActiveTab("favorites")}>
-                <FontAwesomeIcon icon={faHeart} /> Favorites
-              </button>
+              {isViewingOwnProfile && (
+                <button className={`tab-btn ${activeTab === "favorites" ? "active" : ""}`} onClick={() => setActiveTab("favorites")}>
+                  <FontAwesomeIcon icon={faHeart} /> Favorites
+                </button>
+              )}
 
               <div className='posts-container'>
                 {isLoadingPosts ? (
                   <div className='loading'>Loading posts...</div>
-                ) : visiblePosts.length > 0 ? (
-                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />)
+                ) : posts.length > 0 ? (
+                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />)
                 ) : (
                   <div className='empty-posts'>
                     <p>{isViewingOwnProfile ? "Nothing here yet — Share your first post and get started!" : "This user hasn't posted anything yet."}</p>
@@ -477,7 +509,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
               <button className='close-btn' onClick={() => setSelectedPostId(null)}>
                 ×
               </button>
-              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />
+              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />
             </div>
           </div>
         )}

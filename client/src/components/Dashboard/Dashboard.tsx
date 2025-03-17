@@ -13,14 +13,14 @@ export interface IPost {
   body: string;
   image: string;
   likes: string[];
-  comments: Comment[];
+  comments: IComment[];
   createdAt: string;
   updatedAt: string;
 }
 
-interface Comment {
+export interface IComment {
   _id: string;
-  user: Pick<UserDetails, "profilePicture" | "username">;
+  user: Pick<UserDetails, "profilePicture" | "username" | "_id">;
   body: string;
   createdAt: string;
 }
@@ -75,6 +75,10 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
     },
     [loadingMore]
   );
+
+  const updateSinglePost = (updatedPost: IPost) => {
+    setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
+  };
 
   // Improved scroll handler with debounce
   useEffect(() => {
@@ -325,7 +329,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
               </div>
             )}
 
-            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} />)}
+            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} updateSinglePost={updateSinglePost} />)}
 
             {loadingMore && <div className='loading-more'>Loading more posts...</div>}
 
@@ -339,7 +343,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
             <button className='close-btn' onClick={() => setSelectedPostId(null)}>
               ×
             </button>
-            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} />
+            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} updateSinglePost={updateSinglePost} />
           </div>
         </div>
       )}
