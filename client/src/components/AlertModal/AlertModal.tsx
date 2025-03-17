@@ -8,9 +8,10 @@ interface AlertModalProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
+  children?: React.ReactNode;
 }
 
-const AlertModal: React.FC<AlertModalProps> = ({ show, message, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel" }) => {
+const AlertModal: React.FC<AlertModalProps> = ({ show, message, onConfirm, onCancel, confirmText = "OK", cancelText = "Cancel", children }) => {
   if (!show) return null;
 
   return (
@@ -18,6 +19,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ show, message, onConfirm, onCan
       <div className='alert-modal-container'>
         <div className='alert-modal-content'>
           <p className='alert-modal-message'>{message}</p>
+          {children}
         </div>
 
         <div className='alert-modal-actions'>
