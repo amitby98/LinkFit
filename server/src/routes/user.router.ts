@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserProfile, updateUserProfile, uploadProfilePicture } from "../controllers/user.controller";
+import { getUserPublicProfile, updateUserProfile, uploadProfilePicture } from "../controllers/user.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
@@ -215,3 +215,31 @@ userRouter.post(
     uploadProfilePicture(req, res);
   }
 );
+
+/**
+ * @swagger
+ * /api/user/{userId}:
+ *   get:
+ *     summary: Get a user's public profile
+ *     description: Returns public information about a user
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user to retrieve
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+userRouter.get("/:userId", authMiddleware, (req, res) => {
+  console.log(`GET user profile request for userId: ${req.params.userId}`);
+  getUserPublicProfile(req, res);
+});
