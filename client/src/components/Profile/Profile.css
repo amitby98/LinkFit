@@ -467,3 +467,43 @@ button:hover {
   color: red;
   border: transparent;
 }
+.badges-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.badges-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #ffcc00, #ff6600);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.badge-icon {
+  width: 60px;
+  height: 60px;
+}
+
+.share-badge {
+  margin-top: 5px;
+  padding: 5px 10px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.share-badge:hover {
+  background: #0056b3;
+}

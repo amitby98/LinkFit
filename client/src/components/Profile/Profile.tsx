@@ -36,6 +36,14 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const navigate = useNavigate();
   const { userId } = useParams();
 
+  interface Badge {
+    name: string;
+    icon: string;
+    level: number;
+  }
+
+  const [badges, setBadges] = useState<Badge[]>([]);
+
   useEffect(() => {
     if (isLoadingUser) {
       return;
@@ -55,6 +63,45 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       fetchFavoritePosts();
     }
   }, [activeTab, user?._id]);
+
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        const { data } = await httpService.get<Badge[]>(`/user/${user?._id}/badges`);
+        setBadges(data);
+      } catch (error) {
+        console.error("Error fetching badges:", error);
+      }
+    };
+
+    if (user?._id) {
+      fetchBadges();
+    }
+  }, [user]);
+
+  interface Badge {
+    name: string;
+    icon: string;
+    level: number;
+  }
+
+  interface ShareBadgeResponse {
+    body: string;
+    image: string;
+  }
+
+  const shareBadge = async (badge: Badge): Promise<void> => {
+    try {
+      await httpService.post<ShareBadgeResponse>("/post", {
+        body: `I just earned the "${badge.name}" badge for completing ${badge.level * 10} days of my challenge! 🏆 #FitnessGoals`,
+        image: badge.icon,
+      });
+
+      alert("Badge shared successfully!");
+    } catch (error) {
+      console.error("Error sharing badge:", error);
+    }
+  };
 
   // Modify the fetchUserPosts function to store who the posts belong to
   const fetchUserPosts = async () => {
@@ -363,6 +410,25 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className='badges-section'>
+          <h3>Achievements</h3>
+          <div className='badges-container'>
+            {badges.length > 0 ? (
+              badges.map((badge, index) => (
+                <div key={index} className='badge'>
+                  <img src={badge.icon} alt={badge.name} className='badge-icon' />
+                  <p>{badge.name}</p>
+                  <button className='share-badge' onClick={() => shareBadge(badge)}>
+                    Share as Post
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p>No badges yet. Start your challenge!</p>
+            )}
           </div>
         </div>
 

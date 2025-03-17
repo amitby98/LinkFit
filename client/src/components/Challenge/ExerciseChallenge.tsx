@@ -172,10 +172,8 @@ const ExerciseChallenge: React.FC = () => {
   };
 
   // Mark a day's exercise as completed
-  const completeExercise = () => {
+  const completeExercise = async () => {
     if (selectedDay !== null) {
-      // Check if the selected day is either the current active day OR a day that was previously completed
-      // This is the key change - we need to know if this day was ever completed before
       const dayIndex = challengeDays.findIndex(day => day.day === selectedDay);
       const wasEverCompleted = dayIndex < currentActiveDay - 1;
 
@@ -193,12 +191,10 @@ const ExerciseChallenge: React.FC = () => {
       setChallengeDays(updatedDays);
       playSuccessSound();
 
-      // Only increment the current active day if we completed the current active day
       if (selectedDay === currentActiveDay) {
         setCurrentActiveDay(prev => Math.min(prev + 1, 100));
       }
 
-      // Check if this was the last day of the challenge
       if (selectedDay === 100) {
         const allCompleted = updatedDays.every(day => day.completed);
         if (allCompleted) {
@@ -208,7 +204,6 @@ const ExerciseChallenge: React.FC = () => {
         }
       }
 
-      // Stop timer if it's running
       if (isRunning) {
         if (timerInterval.current) {
           clearInterval(timerInterval.current);
@@ -217,7 +212,6 @@ const ExerciseChallenge: React.FC = () => {
         setIsRunning(false);
       }
 
-      // Get the current user ID from localStorage
       const token = localStorage.getItem("token");
       let userId = "";
 
@@ -233,15 +227,40 @@ const ExerciseChallenge: React.FC = () => {
       const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
       localStorage.setItem(storageKey, JSON.stringify(updatedDays));
 
-      // Prepare share message with emoji based on muscle group
       const exercise = updatedDays[selectedDay - 1].exercise;
       const muscleGroup = determineMuscleGroup(exercise?.name || "");
       const emoji = getMuscleGroupEmoji(muscleGroup);
 
       setShareMessage(`${emoji} Day ${selectedDay}/100 Complete! ${emoji}\nI finished "${exercise?.name}" in ${formatTime(timer)}!\n#100DayFitnessChallenge`);
+
       if (isRunning) {
         toggleTimer();
       }
+
+      const completedCount = updatedDays.filter(day => day.completed).length;
+      await awardBadgeIfNeeded(completedCount);
+    }
+  };
+
+  //Receiving Budget every 10 days
+  const awardBadgeIfNeeded = async (completedDays: number) => {
+    if (completedDays % 10 === 0) {
+      const badgeLevel = completedDays / 10;
+      const badge = {
+        level: badgeLevel,
+        name: `Elite ${badgeLevel * 10}-Day`,
+        icon: `/badges/badge-${badgeLevel}.png`,
+        achievedAt: new Date().toISOString(),
+      };
+
+      try {
+        await httpService.post("/user/badges", { badge });
+      } catch (error) {
+        console.error("Error awarding badge:", error);
+      }
+
+      const audio = new Audio("/success-badge.mp3");
+      audio.play().catch(err => console.log("Audio playback error:", err));
     }
   };
 
