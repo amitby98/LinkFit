@@ -61,10 +61,10 @@ const HomePage = () => {
       </video>
       <div className='homeView'>
         <div className='welcome'>
-          <h1 id='welcome-header'> Find. Meet. Get fit. </h1>
-          <span id='welcome-span'>Personal training has never been so easy.</span>
+          <h1 id='welcome-header'>Challenge Yourself. Support Each Other.</h1>
+          <span id='welcome-span'>Join the 100-day journey and reach your fitness goals together</span>
           <Link to='/sign-up'>
-            <button id='start-btn'>Start your change now</button>
+            <button id='start-btn'>Join the Challenge</button>
           </Link>
         </div>
       </div>
