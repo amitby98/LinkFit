@@ -97,6 +97,8 @@ userRouter.get("/:userId/badges", authMiddleware, getUserBadges);
  */
 userRouter.post("/badges", authMiddleware, addBadge);
 
+/**
+ * @swagger
  * /api/user/{userId}:
  *   get:
  *     summary: Get a user's public profile
@@ -122,4 +124,3 @@ userRouter.get("/:userId", authMiddleware, (req, res) => {
   console.log(`GET user profile request for userId: ${req.params.userId}`);
   getUserPublicProfile(req, res);
 });
-

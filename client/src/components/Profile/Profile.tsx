@@ -35,7 +35,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
   const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
-  const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(false);
   const { userId } = useParams();
 
   interface Badge {
@@ -351,7 +350,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const visiblePosts = activeTab === "posts" ? posts : favoritePosts;
   const displayUser = isViewingOwnProfile ? user : profileUser;
 
-
   const BadgeSharedModal = () => {
     if (!showBadgeSharedModal) return null;
 
@@ -367,7 +365,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       </div>
     );
   };
-
 
   function updateSinglePost(updatedPost: IPost): void {
     setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
@@ -410,7 +407,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                         </button>
                       ) : (
                         <button className='btn edit-btn' onClick={toggleEditMode}>
-                          <FontAwesomeIcon icon={faEdit} /> 
+                          <FontAwesomeIcon icon={faEdit} />
                         </button>
                       )}
                     </div>
