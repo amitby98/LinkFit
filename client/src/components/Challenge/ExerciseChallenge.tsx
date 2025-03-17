@@ -42,6 +42,7 @@ const ExerciseChallenge: React.FC = () => {
   const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
   const [editedShareMessage, setEditedShareMessage] = useState<string>("");
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [currentActiveDay, setCurrentActiveDay] = useState<number>(1);
 
   useEffect(() => {
     initializeChallenge();
@@ -71,26 +72,29 @@ const ExerciseChallenge: React.FC = () => {
     if (savedChallenge) {
       const parsed = JSON.parse(savedChallenge);
       setChallengeDays(parsed);
+      const completedDays = parsed.filter((day: DayChallenge) => day.completed);
+      let nextDay = 1;
 
-      const today = new Date().toLocaleDateString();
-      const todayCompletedDay = parsed.findIndex((day: DayChallenge) => day.date === today && day.completed);
-
-      if (todayCompletedDay !== -1) {
-        const selectedDayNumber = todayCompletedDay + 1;
-        setSelectedDay(selectedDayNumber);
-        loadExerciseForDay(selectedDayNumber, parsed);
-      } else {
-        const nextIncompleteDay = parsed.findIndex((day: DayChallenge) => !day.completed);
-        if (nextIncompleteDay !== -1) {
-          const selectedDayNumber = nextIncompleteDay + 1;
-          setSelectedDay(selectedDayNumber);
-          loadExerciseForDay(selectedDayNumber, parsed);
+      if (completedDays.length > 0) {
+        const sortedDays = [...completedDays].sort((a, b) => a.day - b.day);
+        const lastCompletedDay = sortedDays[sortedDays.length - 1];
+        if (sortedDays.length === lastCompletedDay.day) {
+          nextDay = lastCompletedDay.day + 1;
+        } else {
+          for (let i = 1; i <= sortedDays.length + 1; i++) {
+            if (!parsed.some((day: DayChallenge) => day.day === i && day.completed)) {
+              nextDay = i;
+              break;
+            }
+          }
         }
       }
+      setCurrentActiveDay(nextDay);
+      setSelectedDay(nextDay <= 100 ? nextDay : 100);
+      loadExerciseForDay(nextDay <= 100 ? nextDay : 100, parsed);
     } else {
       await createNewChallenge(storageKey);
     }
-
     setIsLoading(false);
   };
 
@@ -169,6 +173,17 @@ const ExerciseChallenge: React.FC = () => {
   // Mark a day's exercise as completed
   const completeExercise = () => {
     if (selectedDay !== null) {
+      // Check if the selected day is either the current active day OR a day that was previously completed
+      // This is the key change - we need to know if this day was ever completed before
+      const dayIndex = challengeDays.findIndex(day => day.day === selectedDay);
+      const wasEverCompleted = dayIndex < currentActiveDay - 1;
+
+      if (selectedDay !== currentActiveDay && !wasEverCompleted) {
+        setAlertMessage("You can only improve days that have already been completed, or complete the current active day.");
+        setShowAlertModal(true);
+        return;
+      }
+
       const updatedDays = [...challengeDays];
       updatedDays[selectedDay - 1].completed = true;
       updatedDays[selectedDay - 1].date = new Date().toLocaleDateString();
@@ -176,6 +191,11 @@ const ExerciseChallenge: React.FC = () => {
 
       setChallengeDays(updatedDays);
       playSuccessSound();
+
+      // Only increment the current active day if we completed the current active day
+      if (selectedDay === currentActiveDay) {
+        setCurrentActiveDay(prev => Math.min(prev + 1, 100));
+      }
 
       // Stop timer if it's running
       if (isRunning) {
@@ -192,7 +212,6 @@ const ExerciseChallenge: React.FC = () => {
 
       if (token) {
         try {
-          // Decode the JWT to get the user ID
           const decoded = JSON.parse(atob(token.split(".")[1]));
           userId = decoded.id || "";
         } catch (error) {
@@ -200,7 +219,6 @@ const ExerciseChallenge: React.FC = () => {
         }
       }
 
-      // Use user-specific storage key
       const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
       localStorage.setItem(storageKey, JSON.stringify(updatedDays));
 
@@ -210,8 +228,6 @@ const ExerciseChallenge: React.FC = () => {
       const emoji = getMuscleGroupEmoji(muscleGroup);
 
       setShareMessage(`${emoji} Day ${selectedDay}/100 Complete! ${emoji}\nI finished "${exercise?.name}" in ${formatTime(timer)}!\n#100DayFitnessChallenge`);
-
-      // Stop timer if it's running
       if (isRunning) {
         toggleTimer();
       }
@@ -219,6 +235,14 @@ const ExerciseChallenge: React.FC = () => {
   };
 
   const selectDay = async (day: number) => {
+    const isCompleted = challengeDays[day - 1].completed;
+    const isCurrentActive = day === currentActiveDay;
+
+    if (!isCompleted && !isCurrentActive) {
+      setAlertMessage("You must complete the challenges in order. Complete the current day first.");
+      setShowAlertModal(true);
+      return;
+    }
     // If timer is running for current day, show confirmation modal
     if (isRunning && selectedDay !== null) {
       setPendingDaySelection(day);
@@ -525,10 +549,6 @@ const ExerciseChallenge: React.FC = () => {
 
       const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
       localStorage.setItem(storageKey, JSON.stringify(updatedDays));
-
-      resetTimer();
-      setShareMessage("");
-      setShowDayResetModal(false);
     }
   };
 
@@ -590,18 +610,30 @@ const ExerciseChallenge: React.FC = () => {
         {/* Challenge Days Grid */}
         <div className='days-grid'>
           {challengeDays.slice(0, 25).map(day => (
-            <div key={day.day} onClick={() => selectDay(day.day)} className={`day-item ${selectedDay === day.day ? "selected" : ""} ${day.completed ? "completed" : ""}`}>
+            <div
+              key={day.day}
+              onClick={() => selectDay(day.day)}
+              className={`day-item ${selectedDay === day.day ? "selected" : ""} 
+                ${day.completed ? "completed" : ""} 
+                ${day.day === currentActiveDay ? "active" : ""} 
+                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}>
               <div className='day-number'>Day {day.day}</div>
-              <div>{day.completed ? "✅" : "🏋️"}</div>
+              <div>{day.completed ? "✅" : day.day === currentActiveDay ? "🏋️" : "🔒"}</div>
             </div>
           ))}
         </div>
         {/* Showing more days in a scrollable container */}
         <div className='days-grid'>
           {challengeDays.slice(25, 100).map(day => (
-            <div key={day.day} onClick={() => selectDay(day.day)} className={`day-item ${selectedDay === day.day ? "selected" : ""} ${day.completed ? "completed" : ""}`}>
+            <div
+              key={day.day}
+              onClick={() => selectDay(day.day)}
+              className={`day-item ${selectedDay === day.day ? "selected" : ""} 
+                ${day.completed ? "completed" : ""} 
+                ${day.day === currentActiveDay ? "active" : ""} 
+                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}>
               <div className='day-number'>Day {day.day}</div>
-              <div>{day.completed ? "✅" : "🏋️"}</div>
+              <div>{day.completed ? "✅" : day.day === currentActiveDay ? "🏋️" : "🔒"}</div>
             </div>
           ))}
         </div>

@@ -426,3 +426,25 @@
   font-family: inherit;
   resize: vertical;
 }
+
+.day-item.locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.day-item.active {
+  border: 2px solid #4caf50;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
