@@ -9,7 +9,7 @@ import { SetErrorContext } from "./contexts/ErrorContext";
 import { httpService } from "./httpService";
 import Profile from "./components/Profile/Profile";
 import Dashboard from "./components/Dashboard/Dashboard";
-import ExercisesList from "./components/ExercisesList";
+import ExerciseChallenge from "./components/Challenge/ExerciseChallenge";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdZM4I2vlLtKPzIdl810TiFE5UxI6PJ30",
@@ -103,7 +103,7 @@ function App() {
     <div>
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
-          <Route path='/exercises' element={<ExercisesList />} />
+          <Route path='/exercises' element={<ExerciseChallenge />} />
           <Route path='/' element={<HomePage />} />
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp refetchUser={refetchUser} />} />

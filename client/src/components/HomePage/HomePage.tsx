@@ -5,8 +5,8 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import "./HomePage.scss";
 import CloseMenu from "/src/assets/react.svg";
 import MenuIcon from "/src/assets/menu.svg";
-import homeVideo from "/src/pics/homeVideo.mp4";
-import logo from "/src/pics/logo.png";
+import homeVideo from "/homeVideo.mp4";
+import logo from "/logo.png";
 
 const HomePage = () => {
   const [click, setClick] = useState(false);
@@ -61,10 +61,10 @@ const HomePage = () => {
       </video>
       <div className='homeView'>
         <div className='welcome'>
-          <h1 id='welcome-header'> Find. Meet. Get fit. </h1>
-          <span id='welcome-span'>Personal training has never been so easy.</span>
+          <h1 id='welcome-header'>Challenge Yourself. Support Each Other.</h1>
+          <span id='welcome-span'>Join the 100-day journey and reach your fitness goals together</span>
           <Link to='/sign-up'>
-            <button id='start-btn'>Start your change now</button>
+            <button id='start-btn'>Join the Challenge</button>
           </Link>
         </div>
       </div>

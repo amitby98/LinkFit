@@ -32,9 +32,19 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [favoritePosts, setFavoritePosts] = useState<IPost[]>([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
   const [activeTab, setActiveTab] = useState<"posts" | "favorites">("posts");
+  const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
+  const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(false);
   const { userId } = useParams();
+
+  interface Badge {
+    name: string;
+    icon: string;
+    level: number;
+  }
+
+  const [badges, setBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
     if (isLoadingUser) {
@@ -76,19 +86,53 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   }, [activeTab, user?._id]);
 
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        const { data } = await httpService.get<Badge[]>(`/user/${user?._id}/badges`);
+        setBadges(data);
+      } catch (error) {
+        console.error("Error fetching badges:", error);
+      }
+    };
+
+    if (user?._id) {
+      fetchBadges();
+    }
+  }, [user]);
+
+  interface ShareBadgeResponse {
+    body: string;
+    image: string;
+  }
+
+  const shareBadge = async (badge: Badge): Promise<void> => {
+    try {
+      await httpService.post<ShareBadgeResponse>("/post", {
+        body: `I just earned the "${badge.name}" badge for completing ${badge.level * 10} days of my challenge! 🏆 #FitnessGoals`,
+        image: badge.icon,
+      });
+
+      // alert("Badge shared successfully!");
+      setShowBadgeSharedModal(true);
+    } catch (error) {
+      console.error("Error sharing badge:", error);
+    }
+  };
+
   const fetchUserPosts = async (targetUserId?: string) => {
     setIsLoadingPosts(true);
     try {
-      // Determine which user's posts to fetch
       const targetUserId = userId || user?._id;
-
       if (!targetUserId) {
         setIsLoadingPosts(false);
         return;
       }
-
       const { data } = await httpService.get<IPost[]>(`/post/user/${targetUserId}`);
       setPosts(data);
+      // Store whether we're viewing our own profile or someone else's
+      const isOwnProfile = targetUserId === user?._id;
+      setIsViewingOwnProfile(isOwnProfile);
     } catch (error) {
       console.error("Error fetching user posts:", error);
       setError("Failed to load posts");
@@ -282,7 +326,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     return <div className='loading-container'>Loading profile...</div>;
   }
 
-  ////////////////////:
   const handleAddComment = async (postId: string) => {
     if (!newComment[postId]?.trim()) return;
 
@@ -308,10 +351,29 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const visiblePosts = activeTab === "posts" ? posts : favoritePosts;
   const displayUser = isViewingOwnProfile ? user : profileUser;
 
+
+  const BadgeSharedModal = () => {
+    if (!showBadgeSharedModal) return null;
+
+    return (
+      <div className='modal-overlay'>
+        <div className='modal-content'>
+          <h2>🎉 Badge Shared Successfully! 🎖️</h2>
+          <p>Now your friends can see your achievement!</p>
+          <button className='modal-button' onClick={() => setShowBadgeSharedModal(false)}>
+            OK
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+
   function updateSinglePost(updatedPost: IPost): void {
     setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
     setFavoritePosts(prevFavoritePosts => prevFavoritePosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
   }
+
   return (
     <>
       <NavBar />
@@ -348,7 +410,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                         </button>
                       ) : (
                         <button className='btn edit-btn' onClick={toggleEditMode}>
-                          <FontAwesomeIcon icon={faEdit} /> Edit Profile
+                          <FontAwesomeIcon icon={faEdit} /> 
                         </button>
                       )}
                     </div>
@@ -393,6 +455,25 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
           </div>
         </div>
 
+        <div className='badges-section'>
+          <h3>Achievements</h3>
+          <div className='badges-container'>
+            {badges.length > 0 ? (
+              badges.map((badge, index) => (
+                <div key={index} className='badge'>
+                  <img src={badge.icon} alt={badge.name} className='badge-icon' />
+                  <p>{badge.name}</p>
+                  <button className='share-badge' onClick={() => shareBadge(badge)}>
+                    Share as Post
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p>No badges yet. Start your challenge!</p>
+            )}
+          </div>
+        </div>
+
         {/* Posts Tabs */}
         <div className='profile-posts-section'>
           <div className='profile-container'>
@@ -413,7 +494,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                   user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />)
                 ) : (
                   <div className='empty-posts'>
-                    <p>Nothing here yet — Share your first post and get started!</p>
+                    <p>{isViewingOwnProfile ? "Nothing here yet — Share your first post and get started!" : "This user hasn't posted anything yet."}</p>
                   </div>
                 )}
               </div>
@@ -432,6 +513,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
             </div>
           </div>
         )}
+        <BadgeSharedModal />
       </div>
     </>
   );

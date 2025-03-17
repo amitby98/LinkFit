@@ -3,11 +3,10 @@ import User from "../models/User.model";
 import fs from "fs";
 import path from "path";
 
+// Get user profile
 export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Ensure the user is accessing their own profile
     const userId = req.user.id;
-
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
@@ -17,80 +16,67 @@ export const getUserProfile = async (req: Request, res: Response): Promise<void>
 
     res.status(200).json(user);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+// Update user profile
 export const updateUserProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
     const { username, bio, profilePicture } = req.body;
 
-    // Ensure the user is updating their own profile
     if (req.user.id !== userId) {
       res.status(403).json({ message: "Not authorized to update this profile" });
       return;
     }
 
-    // Find the user and update
     const user = await User.findById(userId);
-
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
 
-    // Update user details
     if (username) user.username = username;
     if (bio !== undefined) user.bio = bio;
     if (profilePicture) user.profilePicture = profilePicture;
 
     await user.save();
-
     res.status(200).json({ message: "Profile updated successfully", user });
   } catch (error) {
-    console.error(error);
+    console.error("Error updating profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+//Upload profile picture
 export const uploadProfilePicture = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
 
-    // Ensure the user is updating their own profile
     if (req.user.id !== userId) {
       res.status(403).json({ message: "Not authorized to update this profile" });
       return;
     }
 
-    // Check if a file was uploaded
     if (!req.file) {
       res.status(400).json({ message: "No file uploaded" });
       return;
     }
 
-    // Get the file path
     const filePath = req.file.path;
-    console.log({ filePath, basename: path.basename(filePath) });
     const fileName = path.basename(filePath);
-
-    // Create a public URL for the file
     const baseUrl = process.env.BASE_URL || "http://localhost:3001";
     const imageUrl = `${baseUrl}/profile-pictures/${fileName}`;
 
-    // Update the user's profile picture in the database
     const user = await User.findById(userId);
-
     if (!user) {
-      // Remove the uploaded file if user not found
       fs.unlinkSync(filePath);
       res.status(404).json({ message: "User not found" });
       return;
     }
 
-    // If user already had a profile picture, delete the old one
     if (user.profilePicture) {
       const oldFilePath = user.profilePicture.replace(`${baseUrl}/`, "");
       const fullOldPath = path.join(__dirname, "..", "..", oldFilePath);
@@ -100,7 +86,6 @@ export const uploadProfilePicture = async (req: Request, res: Response): Promise
       }
     }
 
-    // Update with new profile picture
     user.profilePicture = imageUrl;
     await user.save();
 
@@ -109,7 +94,48 @@ export const uploadProfilePicture = async (req: Request, res: Response): Promise
       imageUrl,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error uploading profile picture:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get all badges of a user
+export const getUserBadges = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.params.userId).select("badges");
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.status(200).json(user.badges);
+  } catch (error) {
+    console.error("Error fetching badges:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Add a new badge to the user
+export const addBadge = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const { badge } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const badgeExists = user.badges.some(b => b.level === badge.level);
+    if (!badgeExists) {
+      user.badges.push(badge);
+      await user.save();
+    }
+
+    res.status(200).json(user.badges);
+  } catch (error) {
+    console.error("Error adding badge:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
