@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils";
-import { IPost } from "../Dashboard/Dashboard";
+import { IPost, IComment } from "../Dashboard/Dashboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment, faImage, faPaperPlane, faThumbsUp } from "@fortawesome/free-solid-svg-icons";
-import { UserDetails } from "../../App";
+import { faComment, faImage, faPaperPlane, faThumbsUp, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { httpService } from "../../httpService";
+import { UserDetails } from "../../App";
+
 import "./Post.css";
 
 export function Post({
@@ -18,9 +19,10 @@ export function Post({
   showComment,
   handleLike,
   refetchPosts,
+  updateSinglePost,
 }: {
   handleAddComment: (postId: string) => Promise<void>;
-  user: UserDetails;
+  user: UserDetails | undefined;
   post: IPost;
   setSelectedPostId: React.Dispatch<React.SetStateAction<string | null>>;
   showComment: boolean;
@@ -30,6 +32,7 @@ export function Post({
   };
   handleLike: (postId: string) => Promise<void>;
   refetchPosts: () => void;
+  updateSinglePost: (updatedPost: IPost) => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedPost, setEditedPost] = useState(post);
@@ -38,6 +41,9 @@ export function Post({
   const [error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editedCommentText, setEditedCommentText] = useState("");
+  const [showDeleteCommentModal, setShowDeleteCommentModal] = useState<string | null>(null);
 
   const handlePostSave = async () => {
     if (!editedPost.body.trim() && !postImage && !editedPost.image) {
@@ -141,6 +147,58 @@ export function Post({
     }
   };
 
+  const startEditComment = (comment: IComment) => {
+    setEditingCommentId(comment._id);
+    setEditedCommentText(comment.body);
+  };
+
+  // For deleting a comment
+  const deleteComment = async (commentId: string) => {
+    try {
+      await httpService.delete(`/comment/${commentId}`);
+      setShowDeleteCommentModal(null);
+
+      // Instead of calling refetchPosts, fetch only this post's updated data
+      const updatedPost = await httpService.get<IPost>(`/post/${post._id}`);
+      if (updatedPost.data) {
+        // Tell the parent component to update this specific post
+        // We'll need to create this function in Dashboard.tsx
+        updateSinglePost(updatedPost.data);
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      setError("Failed to delete comment");
+    }
+  };
+
+  // For editing a comment
+  const saveEditedComment = async () => {
+    if (!editingCommentId || !editedCommentText.trim()) return;
+
+    try {
+      await httpService.put(`/comment/${editingCommentId}`, {
+        body: editedCommentText,
+      });
+
+      setEditingCommentId(null);
+      setEditedCommentText("");
+
+      // Fetch only this post's updated data
+      const updatedPost = await httpService.get<IPost>(`/post/${post._id}`);
+      if (updatedPost.data) {
+        updateSinglePost(updatedPost.data);
+      }
+    } catch (error) {
+      console.error("Error editing comment:", error);
+      setError("Failed to edit comment");
+    }
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditedCommentText("");
+  };
+
   return (
     <div key={post._id} className='post-card'>
       <div className='post-header' onClick={() => navigateToUserProfile(post.user._id)}>
@@ -216,8 +274,32 @@ export function Post({
                     <div className='comment-header'>
                       <span className='comment-username'>{comment.user.username}</span>
                       <span className='comment-date'>{formatDate(comment.createdAt)}</span>
+                      {user?._id === comment.user._id && (
+                        <div className='comment-actions'>
+                          <button className='comment-action-btn' onClick={() => startEditComment(comment)}>
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                          <button className='comment-action-btn' onClick={() => setShowDeleteCommentModal(comment._id)}>
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <p className='comment-text'>{comment.body}</p>
+                    {editingCommentId === comment._id ? (
+                      <div className='edit-comment-container'>
+                        <input type='text' value={editedCommentText} onChange={e => setEditedCommentText(e.target.value)} className='edit-comment-input' />
+                        <div className='edit-comment-actions'>
+                          <button onClick={saveEditedComment} className='save-comment-btn'>
+                            Save
+                          </button>
+                          <button onClick={cancelEditComment} className='cancel-comment-btn'>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className='comment-text'>{comment.body}</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -232,7 +314,8 @@ export function Post({
               onSubmit={e => {
                 e.preventDefault();
                 handleAddComment(post._id);
-              }}>
+              }}
+            >
               <input type='text' placeholder='Write a comment...' value={newComment[post._id] || ""} onChange={e => onCommentInputChange(post._id, e.target.value)} className='comment-input' />
               <button type='submit' className='send-comment-btn' disabled={!newComment[post._id]?.trim()}>
                 <FontAwesomeIcon icon={faPaperPlane} />
@@ -252,6 +335,23 @@ export function Post({
                 Cancel
               </button>
               <button onClick={confirmDelete} className='delete-btn'>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Comment Confirmation Modal */}
+      {showDeleteCommentModal && (
+        <div className='modal-overlay'>
+          <div className='delete-modal'>
+            <h3>Delete Comment</h3>
+            <p>Are you sure you want to delete this comment?</p>
+            <div className='delete-modal-actions'>
+              <button onClick={() => setShowDeleteCommentModal(null)} className='cancel-btn'>
+                Cancel
+              </button>
+              <button onClick={() => deleteComment(showDeleteCommentModal)} className='delete-btn'>
                 Delete
               </button>
             </div>

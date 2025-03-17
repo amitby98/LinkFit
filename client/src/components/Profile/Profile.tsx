@@ -308,6 +308,10 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const visiblePosts = activeTab === "posts" ? posts : favoritePosts;
   const displayUser = isViewingOwnProfile ? user : profileUser;
 
+  function updateSinglePost(updatedPost: IPost): void {
+    setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
+    setFavoritePosts(prevFavoritePosts => prevFavoritePosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
+  }
   return (
     <>
       <NavBar />
@@ -406,7 +410,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 {isLoadingPosts ? (
                   <div className='loading'>Loading posts...</div>
                 ) : posts.length > 0 ? (
-                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />)
+                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />)
                 ) : (
                   <div className='empty-posts'>
                     <p>Nothing here yet — Share your first post and get started!</p>
@@ -424,7 +428,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
               <button className='close-btn' onClick={() => setSelectedPostId(null)}>
                 ×
               </button>
-              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} />
+              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />
             </div>
           </div>
         )}
