@@ -242,19 +242,41 @@ const ExerciseChallenge: React.FC = () => {
     }
   };
 
+  const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
+  const [earnedBadge, setEarnedBadge] = useState<{ name: string; icon: string } | null>(null);
+
+  const BadgeModal = () => {
+    if (!showBadgeModal || !earnedBadge) return null;
+
+    return (
+      <div className='modal-overlay'>
+        <div className='modal-content'>
+          <h2>Bravo</h2>
+          <img src={earnedBadge.icon} alt={earnedBadge.name} className='badge-image' />
+          <p>{earnedBadge.name}</p>
+          <button onClick={() => setShowBadgeModal(false)} className='modal-button'>
+            close
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   //Receiving Budget every 10 days
   const awardBadgeIfNeeded = async (completedDays: number) => {
     if (completedDays % 10 === 0) {
       const badgeLevel = completedDays / 10;
       const badge = {
         level: badgeLevel,
-        name: `Elite ${badgeLevel * 10}-Day`,
+        name: `Elite ${badgeLevel * 10} Day`,
         icon: `/badges/badge-${badgeLevel}.png`,
         achievedAt: new Date().toISOString(),
       };
 
       try {
         await httpService.post("/user/badges", { badge });
+        setEarnedBadge({ name: badge.name, icon: badge.icon });
+        setShowBadgeModal(true);
       } catch (error) {
         console.error("Error awarding badge:", error);
       }
@@ -644,6 +666,7 @@ const ExerciseChallenge: React.FC = () => {
 
   return (
     <>
+      <BadgeModal />
       <NavBar />
 
       <div className='challenge-container'>
@@ -691,7 +714,8 @@ const ExerciseChallenge: React.FC = () => {
               className={`day-item ${selectedDay === day.day ? "selected" : ""} 
                 ${day.completed ? "completed" : ""} 
                 ${day.day === currentActiveDay ? "active" : ""} 
-                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}>
+                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}
+            >
               <div className='day-number'>Day {day.day}</div>
               <div>{day.completed ? "✅" : day.day === currentActiveDay ? "🏋️" : "🔒"}</div>
             </div>
@@ -706,7 +730,8 @@ const ExerciseChallenge: React.FC = () => {
               className={`day-item ${selectedDay === day.day ? "selected" : ""} 
                 ${day.completed ? "completed" : ""} 
                 ${day.day === currentActiveDay ? "active" : ""} 
-                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}>
+                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}
+            >
               <div className='day-number'>Day {day.day}</div>
               <div>{day.completed ? "✅" : day.day === currentActiveDay ? "🏋️" : "🔒"}</div>
             </div>

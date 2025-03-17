@@ -33,6 +33,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
   const [activeTab, setActiveTab] = useState<"posts" | "favorites">("posts");
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
+  const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -79,12 +80,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   }, [user]);
 
-  interface Badge {
-    name: string;
-    icon: string;
-    level: number;
-  }
-
   interface ShareBadgeResponse {
     body: string;
     image: string;
@@ -97,7 +92,8 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
         image: badge.icon,
       });
 
-      alert("Badge shared successfully!");
+      // alert("Badge shared successfully!");
+      setShowBadgeSharedModal(true);
     } catch (error) {
       console.error("Error sharing badge:", error);
     }
@@ -334,6 +330,22 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
   const visiblePosts = activeTab === "posts" ? posts : favoritePosts;
 
+  const BadgeSharedModal = () => {
+    if (!showBadgeSharedModal) return null;
+
+    return (
+      <div className='modal-overlay'>
+        <div className='modal-content'>
+          <h2>🎉 Badge Shared Successfully! 🎖️</h2>
+          <p>Now your friends can see your achievement!</p>
+          <button className='modal-button' onClick={() => setShowBadgeSharedModal(false)}>
+            OK
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <NavBar />
@@ -369,7 +381,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                       </button>
                     ) : (
                       <button className='btn edit-btn' onClick={toggleEditMode}>
-                        <FontAwesomeIcon icon={faEdit} /> Edit Profile
+                        <FontAwesomeIcon icon={faEdit} />
                       </button>
                     )}
                   </div>
@@ -469,6 +481,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
             </div>
           </div>
         )}
+        <BadgeSharedModal />
       </div>
     </>
   );
