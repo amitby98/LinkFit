@@ -448,3 +448,30 @@
     box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
   }
 }
+
+.celebration {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.completion-modal {
+  background: linear-gradient(135deg, #1e5799 0%, #2989d8 50%, #207cca 51%, #7db9e8 100%);
+  color: white;
+  border: 3px solid gold;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+}
+
+.completion-stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.celebration .modal-icon {
+  font-size: 60px;
+}
+
+.celebration .modal-title {
+  font-size: 32px;
+  color: gold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}

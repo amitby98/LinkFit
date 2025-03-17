@@ -43,6 +43,7 @@ const ExerciseChallenge: React.FC = () => {
   const [editedShareMessage, setEditedShareMessage] = useState<string>("");
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
   const [currentActiveDay, setCurrentActiveDay] = useState<number>(1);
+  const [showCompletionModal, setShowCompletionModal] = useState<boolean>(false);
 
   useEffect(() => {
     initializeChallenge();
@@ -195,6 +196,16 @@ const ExerciseChallenge: React.FC = () => {
       // Only increment the current active day if we completed the current active day
       if (selectedDay === currentActiveDay) {
         setCurrentActiveDay(prev => Math.min(prev + 1, 100));
+      }
+
+      // Check if this was the last day of the challenge
+      if (selectedDay === 100) {
+        const allCompleted = updatedDays.every(day => day.completed);
+        if (allCompleted) {
+          setShowCompletionModal(true);
+          const completionAudio = new Audio("/completion-sound.mp3");
+          completionAudio.play().catch(error => console.log("Audio playback error:", error));
+        }
       }
 
       // Stop timer if it's running
@@ -552,6 +563,52 @@ const ExerciseChallenge: React.FC = () => {
     }
   };
 
+  const ChallengeCompletionModal = () => {
+    if (!showCompletionModal) return null;
+
+    const totalTimeSpent = challengeDays.reduce((total, day) => total + (day.timeSpent || 0), 0);
+    const formattedTotalTime = formatTime(totalTimeSpent);
+
+    const shareFullChallenge = () => {
+      const message = `🏆 I DID IT! 🏆\nI completed the 100-Day Fitness Challenge in ${formattedTotalTime} total workout time!\n#100DayFitnessChallenge #FitnessGoals`;
+      setEditedShareMessage(message);
+      setShowCompletionModal(false);
+      setShowShareModal(true);
+    };
+
+    return (
+      <div className='modal-overlay celebration'>
+        <div className='modal-content completion-modal'>
+          <div className='modal-header'>
+            <div className='modal-icon'>🏆</div>
+            <h2 className='modal-title'>CHALLENGE COMPLETED!</h2>
+            <p className='modal-message'>Congratulations! You've completed all 100 days of the fitness challenge!</p>
+          </div>
+
+          <div className='completion-stats'>
+            <div className='stat-item'>
+              <div className='stat-value'>100</div>
+              <div>Days Completed</div>
+            </div>
+            <div className='stat-item'>
+              <div className='stat-value'>{formattedTotalTime}</div>
+              <div>Total Workout Time</div>
+            </div>
+          </div>
+
+          <div className='modal-actions'>
+            <button onClick={() => setShowCompletionModal(false)} className='modal-button continue-button'>
+              Continue
+            </button>
+            <button onClick={shareFullChallenge} className='modal-button share-button'>
+              Share Achievement
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <>
@@ -599,7 +656,6 @@ const ExerciseChallenge: React.FC = () => {
           </div>
         </div>
         {/* Progress bar */}
-        {/* Progress bar with class-based styling */}
         <div className='progress-bar'>
           <div
             className={`progress-fill 
@@ -717,6 +773,7 @@ const ExerciseChallenge: React.FC = () => {
 
       {/* Render the modal */}
       <ResetConfirmationModal />
+      <ChallengeCompletionModal />
 
       {/* Day Reset Modal */}
       <AlertModal show={showDayResetModal} message={`Are you sure you want to reset day ${selectedDay}? The day's progress will be deleted.`} onConfirm={resetDay} onCancel={() => setShowDayResetModal(false)} confirmText='Reset Day' cancelText='Cancel' />
