@@ -40,6 +40,8 @@ const ExerciseChallenge: React.FC = () => {
   const [pendingDaySelection, setPendingDaySelection] = useState<number | null>(null);
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const muscleGroups = ["back", "cardio", "chest", "lower arms", "lower legs", "neck", "shoulders", "upper arms", "upper legs", "waist"];
+  const [editedShareMessage, setEditedShareMessage] = useState<string>("");
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
 
   useEffect(() => {
     initializeChallenge();
@@ -175,6 +177,15 @@ const ExerciseChallenge: React.FC = () => {
       setChallengeDays(updatedDays);
       playSuccessSound();
 
+      // Stop timer if it's running
+      if (isRunning) {
+        if (timerInterval.current) {
+          clearInterval(timerInterval.current);
+          timerInterval.current = null;
+        }
+        setIsRunning(false);
+      }
+
       // Get the current user ID from localStorage
       const token = localStorage.getItem("token");
       let userId = "";
@@ -261,6 +272,11 @@ const ExerciseChallenge: React.FC = () => {
 
   // Start or pause the timer
   const toggleTimer = () => {
+    // Check if the selected day is completed and prevent starting the timer
+    if (selectedDay !== null && challengeDays[selectedDay - 1].completed && !isRunning) {
+      return;
+    }
+
     if (isRunning) {
       if (timerInterval.current) {
         clearInterval(timerInterval.current);
@@ -271,7 +287,6 @@ const ExerciseChallenge: React.FC = () => {
         setTimer(prev => prev + 1);
       }, 1000);
     }
-
     setIsRunning(!isRunning);
   };
 
@@ -332,25 +347,26 @@ const ExerciseChallenge: React.FC = () => {
 
   // Share completion on social media
   const shareCompletion = () => {
-    // In a real app, this would connect to social media APIs
-    // For now, we'll use the Web Share API if available
-    if (navigator.share) {
-      navigator
-        .share({
-          title: "100 Day Fitness Challenge",
-          text: shareMessage,
-        })
-        .then(() => console.log("Shared successfully"))
-        .catch(error => console.log("Error sharing:", error));
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard
-        .writeText(shareMessage)
-        .then(() => alert("Share text copied to clipboard!\n\n" + shareMessage))
-        .catch(err => alert("Failed to copy: " + err));
-    }
+    setEditedShareMessage(shareMessage);
+    setShowShareModal(true);
+  };
 
-    // Keep the share message available
+  const handleShareAsPost = async () => {
+    try {
+      // Create post using the existing API
+      await httpService.post("/post", {
+        body: editedShareMessage,
+      });
+
+      // Close modal and show success message
+      setShowShareModal(false);
+      setAlertMessage("Your achievement has been shared successfully!");
+      setShowAlertModal(true);
+    } catch (error) {
+      console.error("Error sharing post:", error);
+      setAlertMessage("Failed to share your achievement. Please try again.");
+      setShowAlertModal(true);
+    }
   };
 
   // Formatter function
@@ -490,6 +506,11 @@ const ExerciseChallenge: React.FC = () => {
 
       setChallengeDays(updatedDays);
 
+      // Reset the timer
+      resetTimer();
+      setShareMessage("");
+      setShowDayResetModal(false);
+
       const token = localStorage.getItem("token");
       let userId = "";
 
@@ -610,13 +631,11 @@ const ExerciseChallenge: React.FC = () => {
               <div className='exercise-controls'>
                 <div className='timer-container'>
                   <div className='timer-display'>{formatTime(timer)}</div>
-
                   <div className='timer-buttons'>
-                    <button onClick={toggleTimer} className={`timer-button ${isRunning ? "pause" : "start"}`}>
+                    <button onClick={toggleTimer} className={`timer-button ${isRunning ? "pause" : "start"}`} disabled={selectedDay !== null && challengeDays[selectedDay - 1].completed}>
                       {isRunning ? "Pause" : "Start"}
                     </button>
-
-                    <button onClick={resetTimer} className='timer-button reset'>
+                    <button onClick={resetTimer} className='timer-button reset' disabled={selectedDay !== null && challengeDays[selectedDay - 1].completed}>
                       Reset
                     </button>
                   </div>
@@ -672,6 +691,12 @@ const ExerciseChallenge: React.FC = () => {
 
       {/* Day Switching Modal */}
       <AlertModal show={showSwitchDayModal} message='Timer is running. Switch days anyway?' onConfirm={confirmDaySwitch} onCancel={cancelDaySwitch} confirmText='Switch' cancelText='Cancel' />
+
+      {/* Share Modal */}
+      <AlertModal show={showShareModal} message='Edit your achievement message:' onConfirm={handleShareAsPost} onCancel={() => setShowShareModal(false)} confirmText='Share as Post' cancelText='Cancel'>
+        <textarea value={editedShareMessage} onChange={e => setEditedShareMessage(e.target.value)} className='share-message-textarea' rows={4} />
+      </AlertModal>
+
       {/* General Alert Modal */}
       <AlertModal show={showAlertModal} message={alertMessage} onConfirm={() => setShowAlertModal(false)} onCancel={() => setShowAlertModal(false)} confirmText='Continue' cancelText='Cancel' />
     </>
