@@ -1,77 +1,9 @@
 import express from "express";
-import { getUserProfile, updateUserProfile, uploadProfilePicture } from "../controllers/user.controller";
+import { getUserProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges } from "../controllers/user.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     UserProfile:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           description: The unique identifier for the user.
- *         username:
- *           type: string
- *           description: The user's username.
- *         bio:
- *           type: string
- *           description: A short bio about the user.
- *         profilePicture:
- *           type: string
- *           description: URL of the user's profile picture.
- *         email:
- *           type: string
- *           description: The user's email address.
- *       required:
- *         - id
- *         - username
- *         - email
- *
- *     UpdateUserProfile:
- *       type: object
- *       properties:
- *         username:
- *           type: string
- *           description: The new username for the user.
- *         bio:
- *           type: string
- *           description: The new bio for the user.
- *         profilePicture:
- *           type: string
- *           description: The new profile picture URL for the user.
- *
- *     RegisterUser:
- *       type: object
- *       properties:
- *         email:
- *           type: string
- *           description: The user's email.
- *         username:
- *           type: string
- *           description: The user's preferred username.
- *         authProvider:
- *           type: string
- *           description: The authentication provider used by the user (e.g., Google, Facebook).
- *       required:
- *         - email
- *         - username
- *         - authProvider
- *
- *     UploadResponse:
- *       type: object
- *       properties:
- *         message:
- *           type: string
- *           description: Status message.
- *         imageUrl:
- *           type: string
- *           description: URL of the uploaded profile picture.
- */
 
 export const userRouter = express.Router();
 
@@ -88,7 +20,6 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Use a more unique filename to avoid collisions
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
     cb(null, `profile-${uniqueSuffix}${ext}`);
@@ -111,9 +42,7 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
 
 /**
@@ -122,75 +51,14 @@ const upload = multer({
  *   put:
  *     summary: Update a user's profile
  *     description: Allows an authenticated user to update their profile.
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the user whose profile is being updated.
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UpdateUserProfile'
- *     responses:
- *       200:
- *         description: Profile updated successfully.
- *       403:
- *         description: Not authorized to update this profile.
- *       404:
- *         description: User not found.
- *       500:
- *         description: Server error.
  */
-userRouter.put("/update-profile/:userId", authMiddleware, (req, res, next) => {
-  console.log(`PUT update-profile request for userId: ${req.params.userId}`);
-  updateUserProfile(req, res);
-});
+userRouter.put("/update-profile/:userId", authMiddleware, updateUserProfile);
 
 /**
  * @swagger
  * /api/user/upload-profile-picture/{userId}:
  *   post:
  *     summary: Upload a user's profile picture
- *     description: Allows an authenticated user to upload a profile picture.
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the user uploading the profile picture.
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               profilePicture:
- *                 type: string
- *                 format: binary
- *                 description: The profile picture file to upload.
- *     responses:
- *       200:
- *         description: Profile picture uploaded successfully.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UploadResponse'
- *       403:
- *         description: Not authorized to upload this profile picture.
- *       400:
- *         description: No file uploaded or invalid file type.
- *       500:
- *         description: Server error.
  */
 userRouter.post(
   "/upload-profile-picture/:userId",
@@ -210,8 +78,21 @@ userRouter.post(
       next();
     });
   },
-  (req, res) => {
-    console.log(`POST upload-profile-picture request for userId: ${req.params.userId}`);
-    uploadProfilePicture(req, res);
-  }
+  uploadProfilePicture
 );
+
+/**
+ * @swagger
+ * /api/user/{userId}/badges:
+ *   get:
+ *     summary: Get all badges of a user
+ */
+userRouter.get("/:userId/badges", authMiddleware, getUserBadges);
+
+/**
+ * @swagger
+ * /api/user/badges:
+ *   post:
+ *     summary: Add a badge to the user
+ */
+userRouter.post("/badges", authMiddleware, addBadge);

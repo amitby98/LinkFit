@@ -39,6 +39,7 @@ export const appPromise = new Promise<[Express, Server<typeof IncomingMessage, t
     app.use("/api/user", userRouter);
     app.use("/api/post", postRouter);
     app.use("/api/exercises", exerciseRouter);
+    // app.use("/user", userRouter);
 
     setupSwagger(app);
     // Start Express server
