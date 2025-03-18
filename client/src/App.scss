@@ -9,47 +9,7 @@ body {
   font-family: "Futura PT W02 Book", Futura, "Trebuchet MS", Arial, sans-serif;
   color: rgba(255, 255, 255, 0.9);
   background-color: #ecedef;
-  // background-color: white;
   color: black;
-}
-
-button {
-  opacity: 1;
-  transition: color 0.3s linear, border-color 0.3s linear;
-  text-transform: uppercase;
-  // color: rgba(255, 255, 255, 0.9);
-  // border: 2px solid rgba(255, 255, 255, 0.7);
-  outline: 0;
-  background: 0 0;
-  text-decoration: none;
-  padding: 2.2vmin 3.75vmin;
-  margin: 0 3px;
-  font-size: 2.2vmin;
-  letter-spacing: 0.14667vmin;
-  line-height: 1;
-  cursor: pointer;
-
-  &:hover {
-    color: #ffc719;
-    border: 2px solid #ffc719;
-  }
-}
-
-a {
-  text-decoration: none;
-  text-transform: uppercase;
-  color: white;
-  box-sizing: border-box;
-  letter-spacing: 0.1025em;
-  font-size: 1em;
-  transition-timing-function: linear;
-  transition-duration: 0.5s;
-  transition-property: color;
-  border-bottom: 4px solid transparent;
-}
-
-a:hover {
-  color: #ffc719;
 }
 
 .alert-popup {
