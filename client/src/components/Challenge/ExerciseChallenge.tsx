@@ -44,6 +44,8 @@ const ExerciseChallenge: React.FC = () => {
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
   const [currentActiveDay, setCurrentActiveDay] = useState<number>(1);
   const [showCompletionModal, setShowCompletionModal] = useState<boolean>(false);
+  const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
+  const [earnedBadge, setEarnedBadge] = useState<{ name: string; icon: string } | null>(null);
 
   useEffect(() => {
     initializeChallenge();
@@ -241,9 +243,6 @@ const ExerciseChallenge: React.FC = () => {
       await awardBadgeIfNeeded(completedCount);
     }
   };
-
-  const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
-  const [earnedBadge, setEarnedBadge] = useState<{ name: string; icon: string } | null>(null);
 
   const BadgeModal = () => {
     if (!showBadgeModal || !earnedBadge) return null;
@@ -518,35 +517,6 @@ const ExerciseChallenge: React.FC = () => {
     }
   };
 
-  // Calculate streak (consecutive days completed)
-  const calculateStreak = (): number => {
-    let streak = 0;
-    const sortedDays = [...challengeDays].filter(day => day.completed && day.date).sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
-
-    if (sortedDays.length === 0) return 0;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let lastDate = today;
-
-    for (const day of sortedDays) {
-      const dayDate = new Date(day.date!);
-      dayDate.setHours(0, 0, 0, 0);
-
-      const diffDays = Math.floor((lastDate.getTime() - dayDate.getTime()) / (1000 * 3600 * 24));
-
-      if (diffDays <= 1) {
-        streak++;
-        lastDate = dayDate;
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  };
-
   // Reset Confirmation Modal Component
   const ResetConfirmationModal = () => {
     if (!showResetModal) return null;
@@ -691,10 +661,6 @@ const ExerciseChallenge: React.FC = () => {
               <div className='stat-value'>{progress}%</div>
               <div>Complete</div>
             </div>
-            <div className='stat-item'>
-              <div className='stat-value'>{calculateStreak()}</div>
-              <div>Day Streak</div>
-            </div>
           </div>
         </div>
         {/* Progress bar */}
@@ -707,31 +673,14 @@ const ExerciseChallenge: React.FC = () => {
         </div>
         {/* Challenge Days Grid */}
         <div className='days-grid'>
-          {challengeDays.slice(0, 25).map(day => (
+          {challengeDays.map(day => (
             <div
               key={day.day}
               onClick={() => selectDay(day.day)}
               className={`day-item ${selectedDay === day.day ? "selected" : ""} 
                 ${day.completed ? "completed" : ""} 
                 ${day.day === currentActiveDay ? "active" : ""} 
-                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}
-            >
-              <div className='day-number'>Day {day.day}</div>
-              <div>{day.completed ? "✅" : day.day === currentActiveDay ? "🏋️" : "🔒"}</div>
-            </div>
-          ))}
-        </div>
-        {/* Showing more days in a scrollable container */}
-        <div className='days-grid'>
-          {challengeDays.slice(25, 100).map(day => (
-            <div
-              key={day.day}
-              onClick={() => selectDay(day.day)}
-              className={`day-item ${selectedDay === day.day ? "selected" : ""} 
-                ${day.completed ? "completed" : ""} 
-                ${day.day === currentActiveDay ? "active" : ""} 
-                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}
-            >
+                ${!day.completed && day.day !== currentActiveDay ? "locked" : ""}`}>
               <div className='day-number'>Day {day.day}</div>
               <div>{day.completed ? "✅" : day.day === currentActiveDay ? "🏋️" : "🔒"}</div>
             </div>

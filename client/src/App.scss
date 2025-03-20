@@ -12,6 +12,16 @@ body {
   color: black;
 }
 
+a {
+  text-decoration: none;
+  text-transform: uppercase;
+  color: white;
+  box-sizing: border-box;
+  letter-spacing: 0.1025em;
+  font-size: 1em;
+  border-bottom: 4px solid transparent;
+}
+
 .alert-popup {
   width: max-content;
   min-width: 300px;

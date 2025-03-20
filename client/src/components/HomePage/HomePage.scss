@@ -91,10 +91,6 @@
       color: white;
       cursor: pointer;
       align-items: center;
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 0.1025em;
-      font-size: 1em;
     }
   }
 
@@ -106,12 +102,6 @@
 .home-nav-link {
   padding: 23px 20px;
   color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  text-transform: uppercase;
-  box-sizing: border-box;
-  letter-spacing: 0.1025em;
-  font-size: 1em;
-  border-bottom: 4px solid transparent;
 
   &:hover {
     color: #ffc719;
@@ -144,8 +134,8 @@
     height: 45vh;
 
     .welcome-header {
-      font-size: 9.25vmin;
-      letter-spacing: 0.185vmin;
+      font-size: 9.2vmin;
+      letter-spacing: 0.2rem;
       width: 100%;
       margin: -9.25vmin 0 0;
       color: rgb(255, 255, 255);
