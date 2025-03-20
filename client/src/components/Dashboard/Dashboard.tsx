@@ -282,10 +282,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   };
 
   return (
-    <>
-      <NavBar />
-      <div className='feed-container'>
-        <div className='feed-content'>
+    <div className='dashboard-container'>
+      <NavBar user={user} />
+      <div className='dashboard-content'>
+        {/* Main Content Area - 80% */}
+        <div className='main-content'>
           {/* Create Post Section */}
           <div className='create-post-container'>
             <h2>Create Post</h2>
@@ -317,7 +318,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
             </form>
           </div>
 
-          {/* Posts Dashboard */}
+          {/* Posts Section */}
           <div className='posts-container'>
             <h2>Recent Posts</h2>
 
@@ -329,25 +330,57 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
               </div>
             )}
 
-            {user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} updateSinglePost={updateSinglePost} />)}
+            {user && posts.map(post => <Post key={post._id} post={post} handleAddComment={handleAddComment} user={user} setSelectedPostId={setSelectedPostId} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} updateSinglePost={updateSinglePost} onCommentInputChange={onCommentInputChange} />)}
 
             {loadingMore && <div className='loading-more'>Loading more posts...</div>}
-
             {!hasNextPage && posts.length > 0 && <div className='no-more-posts'>No more posts to load</div>}
           </div>
         </div>
-      </div>
-      {selectedPostId && user && (
-        <div className='modal'>
-          <div className='modal-content'>
-            <button className='close-btn' onClick={() => setSelectedPostId(null)}>
-              ×
-            </button>
-            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} updateSinglePost={updateSinglePost} />
+
+        {selectedPostId && user && (
+          <div className='modal'>
+            <div className='modal-content'>
+              <button className='close-btn' onClick={() => setSelectedPostId(null)}>
+                ×
+              </button>
+              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} updateSinglePost={updateSinglePost} />
+            </div>
+          </div>
+        )}
+
+        {/* Right Sidebar - 20% */}
+        <div className='sidebar'>
+          {/* Next Challenge Section */}
+          <div className='sidebar-section'>
+            <h3>Your Next Challenge</h3>
+            <div className='challenge-card'>
+              <h4>Run 5K</h4>
+              <p>Complete a 5K run this week</p>
+              <button className='challenge-btn'>Start</button>
+            </div>
+          </div>
+
+          {/* Achievements Section */}
+          <div className='sidebar-section'>
+            <h3>Achievements</h3>
+            <div className='badges-container'>
+              <div className='badge'>🏃</div>
+              <div className='badge'>🏋️</div>
+              <div className='badge'>🚴</div>
+              <div className='badge'>🏅</div>
+            </div>
+          </div>
+
+          {/* Latest Activity Section */}
+          <div className='sidebar-section'>
+            <h3>Latest Activity</h3>
+            <div className='activity-empty'>
+              <p>No recent activity</p>
+            </div>
           </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 
