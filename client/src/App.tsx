@@ -100,7 +100,7 @@ function App() {
   };
 
   return (
-    <div>
+    <div className='main-app'>
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
           <Route path='/exercises' element={<ExerciseChallenge />} />

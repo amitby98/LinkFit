@@ -1,4 +1,15 @@
-export const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-};
+import { format } from "date-fns";
+
+export function formatDate(timestamp: string) {
+  const postDate = new Date(timestamp);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - postDate.getTime()) / 60000);
+
+  if (diffInMinutes < 1) {
+    return "Just now";
+  } else if (diffInMinutes < 60) {
+    return `${diffInMinutes} minutes ago`;
+  } else {
+    return format(postDate, "MMMM d, yyyy");
+  }
+}

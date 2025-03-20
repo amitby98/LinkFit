@@ -22,6 +22,12 @@ a {
   border-bottom: 4px solid transparent;
 }
 
+.main-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .alert-popup {
   width: max-content;
   min-width: 300px;
