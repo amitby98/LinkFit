@@ -1,15 +1,39 @@
-.feed-container {
-  max-width: 800px;
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+}
+
+/* Dashboard container */
+.dashboard-container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  display: flex;
+  max-width: 1200px;
   margin: 20px auto;
+  gap: 20px;
   padding: 0 15px;
 }
 
-.feed-content {
+.main-content {
+  flex: 0.8;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
+.sidebar {
+  flex: 0.2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Create Post Section */
 .create-post-container {
   background-color: #fff;
   border-radius: 8px;
@@ -126,70 +150,239 @@
   font-size: 14px;
 }
 
-/* Posts Feed Section */
-.posts-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.posts-container h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 18px;
-  color: #333;
-}
-
-/* Comments Section */
-.no-posts {
+/* Custom Post Card */
+.custom-post-card {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-  text-align: center;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.custom-post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.custom-post-user {
+  display: flex;
+  align-items: center;
+}
+
+.custom-post-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+}
+
+.custom-post-username {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.custom-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-post-date {
+  font-size: 14px;
   color: #65676b;
 }
 
-.loading {
-  text-align: center;
-  padding: 20px;
+.custom-post-menu {
+  background: none;
+  border: none;
+  font-size: 16px;
   color: #65676b;
+  cursor: pointer;
+}
+
+.custom-post-content {
+  margin-bottom: 15px;
+}
+
+.custom-post-text {
+  margin: 0 0 15px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.custom-post-image-container {
+  margin-top: 10px;
+}
+
+.custom-post-image {
+  max-width: 100%;
+  max-height: 500px;
+  border-radius: 8px;
+}
+
+.custom-post-stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid #ced0d4;
+  border-bottom: 1px solid #ced0d4;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #65676b;
+}
+
+.custom-post-actions {
+  display: flex;
+  justify-content: space-around;
+}
+
+.custom-action-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #65676b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.custom-action-btn:hover {
+  color: #1877f2;
+}
+
+.custom-action-btn.liked {
+  color: #1877f2;
+  font-weight: bold;
+}
+
+/* Sidebar Sections */
+.sidebar-section {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.sidebar-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #333;
+  position: relative;
+  padding-bottom: 8px;
+}
+
+.sidebar-section h3:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background-color: #1877f2;
+}
+
+/* Challenge Card */
+.challenge-card {
+  padding: 10px;
+  background-color: #f7f8fa;
+  border-radius: 6px;
+}
+
+.challenge-card h4 {
+  margin: 0 0 5px 0;
+  font-size: 15px;
+  color: #333;
+}
+
+.challenge-card p {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: #65676b;
+}
+
+.challenge-btn {
+  background-color: #1877f2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Badges */
+.badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.badge {
+  width: 40px;
+  height: 40px;
+  background-color: #f0f2f5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+/* Activity */
+.activity-empty {
+  padding: 15px;
+  text-align: center;
+  color: #65676b;
+  font-size: 14px;
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-  .feed-container {
-    padding: 0 10px;
+@media (max-width: 992px) {
+  .dashboard-content {
+    flex-direction: column;
+  }
+
+  .main-content,
+  .sidebar {
+    flex: 1;
+    width: 100%;
+  }
+
+  .navbar-search {
+    width: 200px;
   }
 }
 
-.modal {
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
+@media (max-width: 768px) {
+  .navbar-center {
+    display: none;
+  }
 
-  .modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    border-radius: 8px;
-    position: relative;
+  .profile-name {
+    display: none;
+  }
+}
 
-    .close {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      color: #aaa;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+@media (max-width: 576px) {
+  .custom-post-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .custom-post-meta {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: space-between;
   }
 }
