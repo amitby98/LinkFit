@@ -10,6 +10,7 @@ import { httpService } from "./httpService";
 import Profile from "./components/Profile/Profile";
 import Dashboard from "./components/Dashboard/Dashboard";
 import ExerciseChallenge from "./components/Challenge/ExerciseChallenge";
+import Favorites from "./components/Favorites/Favorites";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdZM4I2vlLtKPzIdl810TiFE5UxI6PJ30",
@@ -103,13 +104,14 @@ function App() {
     <div className='main-app'>
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
-          <Route path='/exercises' element={<ExerciseChallenge />} />
+          <Route path='/exercises' element={<ExerciseChallenge user={user} />} />
           <Route path='/' element={<HomePage />} />
           <Route path='/home' element={<HomePage />} />
           <Route path='/sign-up' element={<SignUp refetchUser={refetchUser} />} />
           <Route path='/profile' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
           <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
           <Route path='/dashboard' element={<Dashboard user={user} />} />
+          <Route path='/favorites' element={<Favorites user={user} isLoadingUser={isLoadingUser} />} />
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
       </SetErrorContext.Provider>
