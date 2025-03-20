@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faCamera, faSave, faImage, faHeart } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCamera, faSave, faImage } from "@fortawesome/free-solid-svg-icons";
 import "./Profile.css";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
@@ -29,9 +29,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   });
   const [posts, setPosts] = useState<IPost[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
-  const [favoritePosts, setFavoritePosts] = useState<IPost[]>([]);
-  const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
-  const [activeTab, setActiveTab] = useState<"posts" | "favorites">("posts");
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
   const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -80,12 +77,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   };
 
   useEffect(() => {
-    if (activeTab === "favorites" && user?._id) {
-      fetchFavoritePosts();
-    }
-  }, [activeTab, user?._id]);
-
-  useEffect(() => {
     const fetchBadges = async () => {
       try {
         const { data } = await httpService.get<Badge[]>(`/user/${user?._id}/badges`);
@@ -112,7 +103,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
         image: badge.icon,
       });
 
-      // alert("Badge shared successfully!");
       setShowBadgeSharedModal(true);
     } catch (error) {
       console.error("Error sharing badge:", error);
@@ -140,31 +130,13 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   };
 
-  const fetchFavoritePosts = async () => {
-    setIsLoadingFavorites(true);
-    try {
-      if (!user?._id) {
-        setIsLoadingFavorites(false);
-        return;
-      }
-
-      const { data } = await httpService.get<IPost[]>(`/post/favorites`);
-      setFavoritePosts(data);
-    } catch (error) {
-      console.error("Error fetching favorite posts:", error);
-      setError("Failed to load favorite posts");
-    } finally {
-      setIsLoadingFavorites(false);
-    }
-  };
-
   const handleLike = async (postId: string) => {
     try {
       await httpService.post(`/post/${postId}/like`);
 
-      // Update both posts and favorites states
-      const updatePostsState = (currentPosts: IPost[]) =>
-        currentPosts.map(post => {
+      // Update posts state
+      setPosts(
+        posts.map(post => {
           if (post._id === postId) {
             const userId = user?._id || "";
             // Toggle like
@@ -175,13 +147,8 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
             }
           }
           return post;
-        });
-      setPosts(updatePostsState);
-      setFavoritePosts(updatePostsState);
-      // If unliked post is in favorites, refetch favorites
-      if (favoritePosts.some(post => post._id === postId)) {
-        fetchFavoritePosts();
-      }
+        })
+      );
     } catch (error) {
       console.error("Error liking post:", error);
       setError("Failed to like post");
@@ -347,7 +314,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   };
 
-  const visiblePosts = activeTab === "posts" ? posts : favoritePosts;
   const displayUser = isViewingOwnProfile ? user : profileUser;
 
   const BadgeSharedModal = () => {
@@ -368,12 +334,11 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
   function updateSinglePost(updatedPost: IPost): void {
     setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
-    setFavoritePosts(prevFavoritePosts => prevFavoritePosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
   }
 
   return (
     <>
-      <NavBar />
+      <NavBar user={user} />
       <div className='profile-page'>
         {/* Profile Header Section */}
         <div className='profile-header'>
@@ -471,24 +436,19 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
           </div>
         </div>
 
-        {/* Posts Tabs */}
+        {/* Posts Section - Modified to remove favorites tab */}
         <div className='profile-posts-section'>
           <div className='profile-container'>
             <div className='profile-tabs'>
-              <button className={`tab-btn ${activeTab === "posts" ? "active" : ""}`} onClick={() => setActiveTab("posts")}>
+              <h3 className='tab-title'>
                 <FontAwesomeIcon icon={faImage} /> {isViewingOwnProfile ? "My Posts" : "Posts"}
-              </button>
-              {isViewingOwnProfile && (
-                <button className={`tab-btn ${activeTab === "favorites" ? "active" : ""}`} onClick={() => setActiveTab("favorites")}>
-                  <FontAwesomeIcon icon={faHeart} /> Favorites
-                </button>
-              )}
+              </h3>
 
               <div className='posts-container'>
                 {isLoadingPosts ? (
                   <div className='loading'>Loading posts...</div>
                 ) : posts.length > 0 ? (
-                  user && visiblePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />)
+                  user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />)
                 ) : (
                   <div className='empty-posts'>
                     <p>{isViewingOwnProfile ? "Nothing here yet — Share your first post and get started!" : "This user hasn't posted anything yet."}</p>
@@ -499,7 +459,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
           </div>
         </div>
 
-        {/* Modal with Post Component - Updated to show full post with comments */}
+        {/* Modal with Post Component */}
         {selectedPostId && user && (
           <div className='modal'>
             <div className='modal-content'>

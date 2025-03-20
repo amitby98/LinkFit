@@ -368,22 +368,6 @@ export function Post({
               ))}
             </div>
           )}
-
-          {/* Add Comment Form */}
-          <div className='add-comment'>
-            <img src={user?.profilePicture || "/default-avatar.png"} alt='Your profile' className='comment-avatar' />
-            <form
-              className='comment-input-container'
-              onSubmit={e => {
-                e.preventDefault();
-                handleAddComment(post._id);
-              }}>
-              <input type='text' placeholder='Write your comment...' value={newComment[post._id] || ""} onChange={e => onCommentInputChange(post._id, e.target.value)} className='comment-input' />
-              <button type='submit' className='send-comment-btn' disabled={!newComment[post._id]?.trim()}>
-                <FontAwesomeIcon icon={faPaperPlane} />
-              </button>
-            </form>
-          </div>
         </div>
       )}
 

@@ -4,6 +4,7 @@ import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
 import AlertModal from "../AlertModal/AlertModal";
 import "./ExerciseChallenge.scss";
+import { UserDetails } from "../../App";
 
 interface Exercise {
   name: string;
@@ -23,7 +24,11 @@ interface DayChallenge {
   timeSpent?: number;
 }
 
-const ExerciseChallenge: React.FC = () => {
+interface ExerciseChallengeProps {
+  user: UserDetails | undefined;
+}
+
+const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
   const [challengeDays, setChallengeDays] = useState<DayChallenge[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [timer, setTimer] = useState<number>(0);
@@ -623,7 +628,8 @@ const ExerciseChallenge: React.FC = () => {
   if (isLoading) {
     return (
       <>
-        <NavBar />
+        <NavBar user={user} />
+
         <div className='loading-container'>
           <div>
             <h2>Loading your 100-day challenge...</h2>
@@ -637,7 +643,7 @@ const ExerciseChallenge: React.FC = () => {
   return (
     <>
       <BadgeModal />
-      <NavBar />
+      <NavBar user={user} />
 
       <div className='challenge-container'>
         <div className='challenge-header'>
