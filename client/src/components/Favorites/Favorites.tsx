@@ -5,6 +5,7 @@ import NavBar from "../NavBar/NavBar";
 import { Post } from "../Post/Post";
 import { IPost } from "../Dashboard/Dashboard";
 import "./Favorites.css";
+import { formatDate } from "../../utils";
 
 interface FavoritesProps {
   user: UserDetails | undefined;
@@ -106,6 +107,9 @@ function Favorites({ user, isLoadingUser }: FavoritesProps) {
   function updateSinglePost(updatedPost: IPost): void {
     setFavoritePosts(prevFavoritePosts => prevFavoritePosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
   }
+  const handlePostClick = (postId: string) => {
+    setSelectedPostId(postId);
+  };
 
   if (isLoadingUser) {
     return <div className='loading-container'>Loading...</div>;
@@ -124,7 +128,31 @@ function Favorites({ user, isLoadingUser }: FavoritesProps) {
           {isLoadingFavorites ? (
             <div className='loading'>Loading favorite posts...</div>
           ) : favoritePosts.length > 0 ? (
-            user && favoritePosts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchFavoritePosts} updateSinglePost={updateSinglePost} />)
+            user &&
+            favoritePosts.map(post => (
+              <div className='post-item' key={post._id} onClick={() => handlePostClick(post._id)}>
+                <div className='grid-post-header'>
+                  <div className='grid-user-info'>
+                    <img src={post.user?.profilePicture || "/default-avatar.png"} alt={`${post.user?.username || "User"}'s profile`} className='grid-post-avatar' />
+                    <span className='grid-username'>{post.user.username}</span>
+                  </div>
+                  <div className='grid-post-date'>{formatDate(post.createdAt)}</div>
+                </div>
+                <div className='post-favorite-content'>
+                  {post.image ? (
+                    <img src={post.image} alt={post.body || "Post image"} />
+                  ) : post.body ? (
+                    <div className='text-only-post'>
+                      <p>{post.body}</p>
+                    </div>
+                  ) : (
+                    <div className='empty-post'>
+                      <p>No content</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
           ) : (
             <div className='empty-favorites'>
               <p>You haven't saved any posts to your favorites yet.</p>
