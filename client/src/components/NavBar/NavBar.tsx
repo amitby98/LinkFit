@@ -2,18 +2,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
-import CloseMenu from "../../assets/x.svg";
-import MenuIcon from "../../assets/menu.svg";
+import { faBell, faSignOutAlt, faSearch, faHome, faTrophy, faBookmark } from "@fortawesome/free-solid-svg-icons";
 import "./NavBar.scss";
 import { getAuth } from "firebase/auth";
+import { UserDetails } from "../../App";
 
-const NavBar = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const toggleMenu = () => setMenuOpen(!menuOpen);
-  const closeMenu = () => setMenuOpen(false);
+const NavBar = ({ user }: { user: UserDetails | undefined }) => {
   const navigate = useNavigate();
   const auth = getAuth();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -26,90 +24,67 @@ const NavBar = () => {
   };
 
   return (
-    <div className='main-navbar'>
-      <div className='nav-menu'>
-        <div className='logo-container'>
+    <div className='custom-navbar'>
+      <div className='navbar-left'>
+        <div className='navbar-logo'>
           <Link to='/dashboard'>
             <img src={logo} className='app-logo' alt='LinkFit Logo' />
           </Link>
         </div>
-        <ul className={menuOpen ? "nav-items active" : "nav-items"}>
-          <li className='nav-item' onClick={closeMenu}>
-            <Link to='/dashboard' className='nav-link'>
-              Dashboard
-            </Link>
-          </li>
-          <li className='nav-item' onClick={closeMenu}>
-            <Link to='/exercises' className='nav-link'>
-              Workouts
-            </Link>
-          </li>
-          <li className='nav-item' onClick={closeMenu}>
-            <Link to='/profile' className='nav-link'>
-              Profile
-            </Link>
-          </li>
-          <li className='nav-item'>
-            <div className='notification-icon'>
-              <div className='notification-button'>
-                <FontAwesomeIcon icon={faBell} color='white' className='bell-icon' />
-                <div className='notification-dropdown'>
-                  <div className='notification-content'>
-                    <div className='content-container'>
-                      {/* <div className='alerts-div'>
-                        {requests &&
-                          requests.map((item, index) => (
-                            <div className='alert trainee-sec' key={"alert" + index}>
-                              <div>{item.image && <img className='trainee-card-image' src={item.image} />}</div>
-                              <div className='coach-card-con'>
-                                {item.trainee_name}
-                                <p>{item.email}</p>
-                                <div className='trainee-card-details'>
-                                  <p>
-                                    Message <span>{item.content}</span>
-                                  </p>
-                                </div>
+        <div className='navbar-separator'></div>
+      </div>
 
-                                <div className='trainees-item txt' key={"C" + index}>
-                                  <p className='date-requests'>{new Date(item.updatedAt).toLocaleDateString("it-IT") + ", " + new Date(item.updatedAt).toLocaleTimeString("it-IT")}</p>
-                                  <div className='coach-card-btn'>
-                                    <Link to={`/chat/${item.trainee_id}/${userDetails.id}`}>
-                                      <button className='chat-btn'>Chat</button>
-                                    </Link>
-                                    <button className='requests-btn' onClick={() => handleRequest(true, item.trainee_id)}>
-                                      <FontAwesomeIcon icon={faCheck} color='#acacac' className='fa-fa' />
-                                    </button>
-                                    <button className='requests-btn' onClick={() => handleRequest(false, item.trainee_id)}>
-                                      <FontAwesomeIcon icon={faTimes} color='#acacac' className='fa-fa' />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div> */}
-                    </div>
-                  </div>
-                </div>
+      <div className='navbar-center'>
+        <div className='navbar-search'>
+          <FontAwesomeIcon icon={faSearch} className='search-icon' />
+          <input type='text' placeholder='Search...' className='search-input' />
+        </div>
+        <div className='navbar-icons'>
+          <Link to='/dashboard' className='navbar-icon active'>
+            <FontAwesomeIcon icon={faHome} />
+          </Link>
+          <Link to='/exercises' className='navbar-icon'>
+            <FontAwesomeIcon icon={faTrophy} />
+          </Link>
+          <Link to='/favorites' className='navbar-icon'>
+            <FontAwesomeIcon icon={faBookmark} />
+          </Link>
+        </div>
+      </div>
+
+      <div className='navbar-right'>
+        <div className='navbar-notifications' onClick={() => setShowNotifications(!showNotifications)}>
+          <FontAwesomeIcon icon={faBell} />
+          <span className='notification-badge'>3</span>
+          {showNotifications && (
+            <div className='notifications-dropdown'>
+              <div className='notification-item'>
+                <p>John liked your post</p>
+                <span>2 hours ago</span>
+              </div>
+              <div className='notification-item'>
+                <p>New challenge available!</p>
+                <span>1 day ago</span>
               </div>
             </div>
-          </li>
-          <li className='mobile-nav-item' onClick={closeMenu}>
-            <a className='sign-in-link' onClick={handleSignOut}>
-              <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
-            </a>
-          </li>
-        </ul>
-      </div>
-      <ul className='auth-container'>
-        <li onClick={closeMenu}>
-          <a className='signout-btn' onClick={handleSignOut}>
-            SignOut
-          </a>
-        </li>
-      </ul>
-      <div className='mobile-menu-toggle' onClick={toggleMenu}>
-        {menuOpen ? <img src={CloseMenu} className='menu-icon' alt='Close Menu' /> : <img src={MenuIcon} className='menu-icon' alt='Menu Icon' />}
+          )}
+        </div>
+
+        <div className='navbar-profile' onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
+          <img src={user?.profilePicture || "/default-avatar.png"} alt='Profile' className='profile-image' />
+          <span className='profile-name'>{user?.username}</span>
+          {showProfileDropdown && (
+            <div className='profile-dropdown'>
+              <a href='/profile'>
+                {" "}
+                <Link to='/profile'>Profile</Link>
+              </a>
+              <a className='sign-in-link' onClick={handleSignOut}>
+                <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

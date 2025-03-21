@@ -2,8 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils";
 import { IPost, IComment } from "../Dashboard/Dashboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment, faImage, faPaperPlane, faThumbsUp, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { faComment, faImage, faPaperPlane, faHeart as solidHeart, faEdit, faTrash, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
+import { useState, useRef, useEffect } from "react";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
 
@@ -44,6 +45,25 @@ export function Post({
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedCommentText, setEditedCommentText] = useState("");
   const [showDeleteCommentModal, setShowDeleteCommentModal] = useState<string | null>(null);
+  const [showMenuOptions, setShowMenuOptions] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Check if the current user has liked the post
+  const isLiked = post.likes.includes(user?._id || "");
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenuOptions(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handlePostSave = async () => {
     if (!editedPost.body.trim() && !postImage && !editedPost.image) {
@@ -101,14 +121,12 @@ export function Post({
       const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
       if (!allowedTypes.includes(file.type)) {
         setError("Only JPEG, PNG, and GIF images are allowed");
-        console.log("Only JPEG, PNG, and GIF images are allowed");
         return;
       }
 
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size cannot exceed 5MB");
-        console.log("Image size cannot exceed 5MB");
         return;
       }
 
@@ -161,8 +179,6 @@ export function Post({
       // Instead of calling refetchPosts, fetch only this post's updated data
       const updatedPost = await httpService.get<IPost>(`/post/${post._id}`);
       if (updatedPost.data) {
-        // Tell the parent component to update this specific post
-        // We'll need to create this function in Dashboard.tsx
         updateSinglePost(updatedPost.data);
       }
     } catch (error) {
@@ -201,20 +217,49 @@ export function Post({
 
   return (
     <div key={post._id} className='post-card'>
-      <div className='post-header' onClick={() => navigateToUserProfile(post.user._id)}>
-        <img src={post.user?.profilePicture || "/default-avatar.png"} alt={`${post.user?.username || "User"}'s profile`} className='post-avatar' onClick={() => post.user && navigateToUserProfile(post.user._id)} />
-        <div className='post-user-info'>
-          <h3 className='post-username' onClick={() => navigate(`/profile/${post.user._id}`)}>
-            {post.user.username}
-          </h3>
+      {/* Post Header */}
+      <div className='post-header'>
+        <div className='header-left' onClick={() => navigateToUserProfile(post.user._id)}>
+          <img src={post.user?.profilePicture || "/default-avatar.png"} alt={`${post.user?.username || "User"}'s profile`} className='post-avatar' />
+          <div className='post-user-info'>
+            <h3 className='post-username'>{post.user.username}</h3>
+          </div>
+        </div>
+        <div className='post-actions-menu' ref={menuRef}>
           <p className='post-date'>{formatDate(post.createdAt)}</p>
+          {user?._id === post.user._id && (
+            <button className='post-menu-dots' onClick={() => setShowMenuOptions(!showMenuOptions)}>
+              <FontAwesomeIcon icon={faEllipsisH} />
+            </button>
+          )}
+          <div className={`post-menu-options ${showMenuOptions ? "visible" : ""}`}>
+            <button
+              className='menu-option edit-option'
+              onClick={() => {
+                setIsEditing(!isEditing);
+                setShowMenuOptions(false);
+              }}>
+              <FontAwesomeIcon icon={faEdit} /> Edit Post
+            </button>
+            <button
+              className='menu-option delete-option'
+              onClick={() => {
+                setShowDeleteModal(true);
+                setShowMenuOptions(false);
+              }}>
+              <FontAwesomeIcon icon={faTrash} /> Delete Post
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Post Content */}
       <div className='post-content'>
+        {/* Text in Post */}
         {post.body && !isEditing && <p className='post-text'>{post.body}</p>}
         {isEditing && (
           <input
-            className='post-text'
+            className='post-text-edit'
             value={editedPost.body ?? ""}
             onChange={e => {
               setEditedPost({ ...editedPost, body: e.target.value });
@@ -227,13 +272,18 @@ export function Post({
           </div>
         )}
         {isEditing && (
-          <>
+          <div className='post-edit-actions'>
             <label className='upload-image-btn'>
-              <FontAwesomeIcon icon={faImage} /> {post.image ? "replace" : "add"}
+              <FontAwesomeIcon icon={faImage} /> {post.image ? "Replace Image" : "Add Image"}
               <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
             </label>
-            <button onClick={handlePostSave}>Save</button>
-          </>
+            <button className='save-post-btn' onClick={handlePostSave}>
+              Save
+            </button>
+            <button className='cancel-edit-btn' onClick={() => setIsEditing(false)}>
+              Cancel
+            </button>
+          </div>
         )}
         {imagePreview && (
           <div className='image-preview-container'>
@@ -244,28 +294,41 @@ export function Post({
           </div>
         )}
       </div>
-      <div className='post-stats'>
-        <span className='like-count' onClick={() => handleLike(post._id)}>
-          {post.likes.length} {post.likes.length === 1 ? "like" : "likes"}
-        </span>
-        <span className='comment-count' onClick={() => setSelectedPostId(post._id)}>
-          {post.comments.length} {post.comments.length === 1 ? "comment" : "comments"}
-        </span>
-      </div>
-      <div className='post-actions'>
-        <button className={`action-btn like-btn ${post.likes.includes(user?._id || "") ? "liked" : ""}`} onClick={() => handleLike(post._id)}>
-          <FontAwesomeIcon icon={faThumbsUp} />
-          {post.likes.includes(user?._id || "") ? "Liked" : "Like"}
-        </button>
-        <button className='action-btn comment-btn' onClick={() => setSelectedPostId(post._id)}>
-          <FontAwesomeIcon icon={faComment} /> Comment
-        </button>
+
+      {/* Post Actions */}
+      <div className='post-engagement'>
+        <div className='add-comment'>
+          <img src={user?.profilePicture || "/default-avatar.png"} alt='Your profile' className='comment-avatar' />
+          <form
+            className='comment-input-container'
+            onSubmit={e => {
+              e.preventDefault();
+              handleAddComment(post._id);
+            }}>
+            <input type='text' placeholder='Write your comment...' value={newComment[post._id] || ""} onChange={e => onCommentInputChange(post._id, e.target.value)} className='comment-input' />
+            <button type='submit' className='send-comment-btn' disabled={!newComment[post._id]?.trim()}>
+              <FontAwesomeIcon icon={faPaperPlane} />
+            </button>
+          </form>
+        </div>
+        <div className='post-stats'>
+          <button className={`action-btn like-btn ${isLiked ? "liked" : ""}`} onClick={() => handleLike(post._id)}>
+            <span className='like-count'>
+              <FontAwesomeIcon icon={isLiked ? solidHeart : regularHeart} /> {post.likes.length}
+            </span>
+          </button>
+          <button className='action-btn comment-btn' onClick={() => setSelectedPostId(post._id)}>
+            <span className='comment-count'>
+              <FontAwesomeIcon icon={faComment} /> {post.comments.length}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Comments Section */}
       {showComment && (
         <div className='comments-section'>
-          {post.comments.length > 0 && (
+          {showComment && post.comments.length > 0 && (
             <div className='comments-list'>
               {post.comments.map(comment => (
                 <div key={comment._id} className='comment'>
@@ -305,25 +368,9 @@ export function Post({
               ))}
             </div>
           )}
-
-          {/* Add Comment Form */}
-          <div className='add-comment'>
-            <img src={user?.profilePicture || "/default-avatar.png"} alt='Your profile' className='comment-avatar' />
-            <form
-              className='comment-input-container'
-              onSubmit={e => {
-                e.preventDefault();
-                handleAddComment(post._id);
-              }}
-            >
-              <input type='text' placeholder='Write a comment...' value={newComment[post._id] || ""} onChange={e => onCommentInputChange(post._id, e.target.value)} className='comment-input' />
-              <button type='submit' className='send-comment-btn' disabled={!newComment[post._id]?.trim()}>
-                <FontAwesomeIcon icon={faPaperPlane} />
-              </button>
-            </form>
-          </div>
         </div>
       )}
+
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className='modal-overlay'>
@@ -341,6 +388,7 @@ export function Post({
           </div>
         </div>
       )}
+
       {/* Delete Comment Confirmation Modal */}
       {showDeleteCommentModal && (
         <div className='modal-overlay'>
