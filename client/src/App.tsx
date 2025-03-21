@@ -101,7 +101,7 @@ function App() {
   };
 
   return (
-    <div className='main-app'>
+    <>
       <SetErrorContext.Provider value={setErrorMessage}>
         <Routes>
           <Route path='/exercises' element={<ExerciseChallenge user={user} />} />
@@ -117,7 +117,7 @@ function App() {
       </SetErrorContext.Provider>
       {alertMessage && <div className='alert-message alert-popup'>{alertMessage}</div>}
       {errorMessage && <div className='error-message alert-popup'>{errorMessage}</div>}
-    </div>
+    </>
   );
 }
 

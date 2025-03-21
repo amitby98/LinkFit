@@ -91,6 +91,12 @@
       color: white;
       cursor: pointer;
       align-items: center;
+      text-decoration: none;
+      text-transform: uppercase;
+      box-sizing: border-box;
+      letter-spacing: 0.1025em;
+      font-size: 1em;
+      border-bottom: 4px solid transparent;
     }
   }
 
@@ -102,6 +108,13 @@
 .home-nav-link {
   padding: 23px 20px;
   color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  text-transform: uppercase;
+  color: white;
+  box-sizing: border-box;
+  letter-spacing: 0.1025em;
+  font-size: 1em;
+  border-bottom: 4px solid transparent;
 
   &:hover {
     color: #ffc719;
