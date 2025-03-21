@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage } from "@fortawesome/free-solid-svg-icons";
+import { faImage, faPaperPlane, faPen } from "@fortawesome/free-solid-svg-icons";
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
@@ -289,10 +289,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
         <div className='main-content'>
           {/* Create Post Section */}
           <div className='create-post-container'>
-            <h2>Create Post</h2>
+            <h2>Welcome Back, {user?.username} 👋</h2>
             <form onSubmit={handlePostSubmit}>
               <div className='post-input-container'>
-                <textarea placeholder="What's on your mind?" value={newPostText} onChange={e => setNewPostText(e.target.value)} className='post-input' />
+                <img src={user?.profilePicture || "/default-avatar.png"} alt='Profile' className='profile-image-input' />
+                <input type='text' placeholder="What's on your mind?" value={newPostText} onChange={e => setNewPostText(e.target.value)} className='post-input' />
               </div>
 
               {imagePreview && (
@@ -311,9 +312,16 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
                   <FontAwesomeIcon icon={faImage} /> Add Photo
                   <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
                 </label>
-                <button type='submit' className='post-submit-btn' disabled={isLoading || (!newPostText.trim() && !postImage)}>
-                  {isLoading ? "Posting..." : "Post"}
-                </button>
+                <div>
+                  <button type='button' className='draft-btn'>
+                    Draft &nbsp;
+                    <FontAwesomeIcon icon={faPen} />
+                  </button>
+                  <button type='submit' className='post-submit-btn' disabled={isLoading || (!newPostText.trim() && !postImage)}>
+                    {isLoading ? " Posting... " : " Post "} &nbsp;
+                    <FontAwesomeIcon icon={faPaperPlane} />
+                  </button>
+                </div>
               </div>
             </form>
           </div>
