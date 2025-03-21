@@ -14,14 +14,14 @@
 }
 
 .main-content {
-  flex: 0.8;
+  flex: 0.6;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
 .sidebar {
-  flex: 0.2;
+  flex: 0.3;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -33,33 +33,37 @@
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 20px;
-}
-
-.create-post-container h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 18px;
-  color: #333;
+  margin-bottom: 20px;
 }
 
 .post-input-container {
-  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  margin: 35px 0px 25px 0px;
+}
+
+.profile-image-input {
+  margin-right: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 
 .post-input {
-  width: 100%;
-  min-height: 100px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  resize: none;
-  font-family: inherit;
+  flex: 1;
+  background-color: #f0f2f5;
+  border-radius: 10px;
+  padding: 13px 16px;
+  border: none;
   font-size: 15px;
+  resize: none;
+  min-height: 24px;
+  font-family: inherit;
 }
 
 .post-input:focus {
   outline: none;
-  border-color: #1877f2;
 }
 
 .image-preview-container {
@@ -99,13 +103,14 @@
 .upload-image-btn {
   display: inline-flex;
   align-items: center;
-  background-color: #f0f2f5;
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
+  color: #606770;
   transition: background-color 0.2s;
+  background-color: #f0f2f5;
+  color: #333;
 }
 
 .upload-image-btn:hover {
@@ -114,7 +119,7 @@
 
 .upload-image-btn svg {
   margin-right: 6px;
-  color: #1877f2;
+  color: #606770;
 }
 
 .post-submit-btn {
@@ -123,7 +128,8 @@
   border: none;
   border-radius: 6px;
   padding: 8px 20px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -136,6 +142,19 @@
   background-color: #e4e6eb;
   color: #bec3c9;
   cursor: not-allowed;
+}
+
+/* Add this for the draft button */
+.draft-btn {
+  background-color: #f0f2f5;
+  border: none;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin-right: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #050505;
 }
 
 .error-message {
