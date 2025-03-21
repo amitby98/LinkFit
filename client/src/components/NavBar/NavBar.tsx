@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faSignOutAlt, faSearch, faHome, faTrophy, faBookmark } from "@fortawesome/free-solid-svg-icons";
@@ -12,7 +12,7 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
   const auth = getAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-
+  const location = useLocation();
   const handleSignOut = async () => {
     try {
       await auth.signOut();
@@ -36,13 +36,13 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
 
       <div className='navbar-center'>
         <div className='navbar-icons'>
-          <Link to='/dashboard' className='navbar-icon active'>
+          <Link to='/dashboard' className={`navbar-icon ${location.pathname === "/dashboard" ? "active" : ""}`}>
             <FontAwesomeIcon icon={faHome} />
           </Link>
-          <Link to='/exercises' className='navbar-icon'>
+          <Link to='/exercises' className={`navbar-icon ${location.pathname === "/exercises" ? "active" : ""}`}>
             <FontAwesomeIcon icon={faTrophy} />
           </Link>
-          <Link to='/favorites' className='navbar-icon'>
+          <Link to='/favorites' className={`navbar-icon ${location.pathname === "/favorites" ? "active" : ""}`}>
             <FontAwesomeIcon icon={faBookmark} />
           </Link>
         </div>
