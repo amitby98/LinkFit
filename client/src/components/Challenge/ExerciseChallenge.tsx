@@ -10,6 +10,7 @@ interface Exercise {
   name: string;
   equipment: string;
   gifUrl: string;
+  // instructions: string;
   guidance?: string;
   completed?: boolean;
 }
@@ -142,6 +143,8 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     try {
       const muscleGroup = currentDays[dayIndex].muscleGroup || muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
       const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscleGroup}`);
+      console.log("Fetched Exercise:", response.data);
+
       const randomIndex = Math.floor(Math.random() * response.data.length);
       const exercise = response.data[randomIndex];
       const updatedDays = [...currentDays];

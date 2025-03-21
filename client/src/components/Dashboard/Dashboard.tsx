@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage, faPaperPlane, faPen } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom"; // Import Link for navigation
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
@@ -25,6 +26,19 @@ export interface IComment {
   createdAt: string;
 }
 
+interface NextExerciseChallenge {
+  day: number;
+  exerciseName: string;
+  muscleGroup: string;
+}
+
+interface ChallengeDay {
+  day: number;
+  completed: boolean;
+  exercise?: { name: string };
+  muscleGroup?: string;
+}
+
 const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [newPostText, setNewPostText] = useState("");
   const [postImage, setPostImage] = useState<File | null>(null);
@@ -37,10 +51,75 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [nextChallenge, setNextChallenge] = useState<NextExerciseChallenge | null>(null);
   const ITEMS_PER_PAGE = 10;
+
+  // Load next challenge data from local storage
+  useEffect(() => {
+    // Get user ID from token (same logic as in ExerciseChallenge.tsx)
+    const token = localStorage.getItem("token");
+    let userId = "";
+
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        userId = decoded.id || "";
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    }
+
+    const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
+    const savedChallenge = localStorage.getItem(storageKey);
+
+    if (savedChallenge) {
+      const parsedChallenge = JSON.parse(savedChallenge);
+
+      const completedDays = (parsedChallenge as ChallengeDay[]).filter(day => day.completed);
+      let nextDay = 1;
+
+      if (completedDays.length > 0) {
+        const sortedDays = [...completedDays].sort((a: ChallengeDay, b: ChallengeDay) => a.day - b.day);
+        const lastCompletedDay = sortedDays[sortedDays.length - 1];
+
+        if (sortedDays.length === lastCompletedDay.day) {
+          nextDay = lastCompletedDay.day + 1;
+        } else {
+          for (let i = 1; i <= sortedDays.length + 1; i++) {
+            if (!parsedChallenge.some((day: ChallengeDay) => day.day === i && day.completed)) {
+              nextDay = i;
+              break;
+            }
+          }
+        }
+      }
+
+      // Make sure we don't go past 100
+      nextDay = Math.min(nextDay, 100);
+
+      // Get the exercise for that day
+      const nextDayData = parsedChallenge[nextDay - 1];
+
+      if (nextDayData && nextDayData.exercise) {
+        setNextChallenge({
+          day: nextDay,
+          exerciseName: nextDayData.exercise.name || "Exercise",
+          muscleGroup: nextDayData.muscleGroup || "Fitness",
+        });
+      } else {
+        // Set default values if no exercise data is available yet
+        setNextChallenge({
+          day: nextDay,
+          exerciseName: "Day's Exercise",
+          muscleGroup: nextDayData?.muscleGroup || "Fitness",
+        });
+      }
+    }
+  }, []);
 
   const fetchPosts = useCallback(
     async (pageNum: number) => {
+      // Rest of your fetchPosts code unchanged
       if (loadingMore) return false;
 
       try {
@@ -76,6 +155,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
     [loadingMore]
   );
 
+  // Rest of your Dashboard component code remains unchanged
   const updateSinglePost = (updatedPost: IPost) => {
     setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
   };
@@ -281,6 +361,22 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
     }
   };
 
+  // Helper function to get emoji for muscle group
+  const getMuscleGroupEmoji = (muscleGroup: string): string => {
+    const group = muscleGroup?.toLowerCase() || "";
+
+    if (group.includes("back")) return "🔙";
+    if (group.includes("cardio")) return "🏃";
+    if (group.includes("chest")) return "💪";
+    if (group.includes("arm")) return "💪";
+    if (group.includes("leg")) return "🦵";
+    if (group.includes("neck")) return "🧘";
+    if (group.includes("shoulder")) return "🏋️";
+    if (group.includes("waist")) return "🔥";
+
+    return "🏆";
+  };
+
   return (
     <div className='dashboard-container'>
       <NavBar user={user} />
@@ -313,10 +409,6 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
                   <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
                 </label>
                 <div>
-                  <button type='button' className='draft-btn'>
-                    Draft &nbsp;
-                    <FontAwesomeIcon icon={faPen} />
-                  </button>
                   <button type='submit' className='post-submit-btn' disabled={isLoading || (!newPostText.trim() && !postImage)}>
                     {isLoading ? " Posting... " : " Post "} &nbsp;
                     <FontAwesomeIcon icon={faPaperPlane} />
@@ -361,11 +453,25 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
           {/* Next Challenge Section */}
           <div className='sidebar-section'>
             <h3>Your Next Challenge</h3>
-            <div className='challenge-card'>
-              <h4>Run 5K</h4>
-              <p>Complete a 5K run this week</p>
-              <button className='challenge-btn'>Start</button>
-            </div>
+            {nextChallenge ? (
+              <div className='challenge-card'>
+                <h4>
+                  {getMuscleGroupEmoji(nextChallenge.muscleGroup)} Day {nextChallenge.day}: {nextChallenge.exerciseName}
+                </h4>
+                <p>{nextChallenge.muscleGroup} exercise</p>
+                <Link to='/exercises'>
+                  <button className='challenge-btn'>Start Now</button>
+                </Link>
+              </div>
+            ) : (
+              <div className='challenge-card'>
+                <h4>Great Job!</h4>
+                <p>You finished the challenge! 🏆</p>
+                <Link to='/exercises'>
+                  <button className='challenge-btn'>See your process</button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Achievements Section */}

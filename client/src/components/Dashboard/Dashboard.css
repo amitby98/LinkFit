@@ -144,19 +144,6 @@
   cursor: not-allowed;
 }
 
-/* Add this for the draft button */
-.draft-btn {
-  background-color: #f0f2f5;
-  border: none;
-  font-size: 14px;
-  border-radius: 6px;
-  padding: 8px 16px;
-  margin-right: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  color: #050505;
-}
-
 .error-message {
   color: #e41e3f;
   margin: 10px 0;
