@@ -1,31 +1,17 @@
 * {
   user-select: none;
   font-family: "Futura PT W02 Book", Futura, "Trebuchet MS", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
   width: 100vw;
   height: 100vh;
-  font-family: "Futura PT W02 Book", Futura, "Trebuchet MS", Arial, sans-serif;
   color: rgba(255, 255, 255, 0.9);
   background-color: #ecedef;
   color: black;
-}
-
-a {
-  text-decoration: none;
-  text-transform: uppercase;
-  color: white;
-  box-sizing: border-box;
-  letter-spacing: 0.1025em;
-  font-size: 1em;
-  border-bottom: 4px solid transparent;
-}
-
-.main-app {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .alert-popup {
