@@ -35,10 +35,6 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
       </div>
 
       <div className='navbar-center'>
-        <div className='navbar-search'>
-          <FontAwesomeIcon icon={faSearch} className='search-icon' />
-          <input type='text' placeholder='Search...' className='search-input' />
-        </div>
         <div className='navbar-icons'>
           <Link to='/dashboard' className='navbar-icon active'>
             <FontAwesomeIcon icon={faHome} />
@@ -49,6 +45,10 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
           <Link to='/favorites' className='navbar-icon'>
             <FontAwesomeIcon icon={faBookmark} />
           </Link>
+        </div>
+        <div className='navbar-search'>
+          <FontAwesomeIcon icon={faSearch} className='search-icon' />
+          <input type='text' placeholder='Search...' className='search-input' />
         </div>
       </div>
 
@@ -75,11 +75,8 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
           <span className='profile-name'>{user?.username}</span>
           {showProfileDropdown && (
             <div className='profile-dropdown'>
-              <a href='/profile'>
-                {" "}
-                <Link to='/profile'>Profile</Link>
-              </a>
-              <a className='sign-in-link' onClick={handleSignOut}>
+              <Link to='/profile'>Profile</Link>
+              <a onClick={handleSignOut}>
                 <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
               </a>
             </div>
