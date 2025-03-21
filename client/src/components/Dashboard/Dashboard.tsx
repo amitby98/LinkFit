@@ -9,6 +9,8 @@ import "./Dashboard.css";
 import { Post } from "../Post/Post";
 
 export interface IPost {
+  imageUrl: string;
+  text: string;
   _id: string;
   user: { username: string; profilePicture: string; _id: string };
   body: string;
