@@ -11,7 +11,7 @@ export function formatDate(timestamp: string) {
   } else if (diffInMinutes < 60) {
     return `${diffInMinutes} minutes ago`;
   } else if (diffInHours < 24) {
-    return `${differenceInHours} hours ago`;
+    return `${diffInHours} hours ago`;
   } else {
     return format(postDate, "MMMM d, yyyy");
   }
