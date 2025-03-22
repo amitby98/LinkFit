@@ -170,3 +170,57 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ message: "Server error" });
   }
 };
+
+//  Get the user's progress
+export const getUserProgress = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.params.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.status(200).json({
+      completedDays: user.progress?.completedDays || 0,
+    });
+  } catch (error) {
+    console.error("Error fetching user progress:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+//  Update the user's progress
+export const updateUserProgress = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.params.userId;
+    const { completedDays } = req.body;
+
+    if (typeof completedDays !== "number" || completedDays < 0) {
+      res.status(400).json({ message: "Invalid completedDays value" });
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    if (!user.progress) {
+      user.progress = { completedDays: 0 };
+    }
+
+    user.progress.completedDays = completedDays;
+    await user.save();
+
+    res.status(200).json({
+      message: "Progress updated successfully",
+      progress: user.progress,
+    });
+  } catch (error) {
+    console.error("Error updating user progress:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

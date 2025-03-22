@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserPublicProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges, getAllUsers } from "../controllers/user.controller";
+import { getUserPublicProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges, getAllUsers, getUserProgress, updateUserProgress } from "../controllers/user.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
@@ -140,3 +140,54 @@ userRouter.get("/:userId", authMiddleware, (req, res) => {
   console.log(`GET user profile request for userId: ${req.params.userId}`);
   getUserPublicProfile(req, res);
 });
+/////////////
+
+/**
+ * @swagger
+ * /api/user/{userId}/progress:
+ *   get:
+ *     summary: Get user's progress
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User progress returned
+ *       404:
+ *         description: User not found
+ */
+userRouter.get("/:userId/progress", authMiddleware, getUserProgress);
+
+/**
+ * @swagger
+ * /api/user/{userId}/progress:
+ *   post:
+ *     summary: Update user's progress
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               completedDays:
+ *                 type: number
+ *                 description: Number of completed exercise days
+ *     responses:
+ *       200:
+ *         description: Progress updated successfully
+ *       404:
+ *         description: User not found
+ */
+userRouter.post("/:userId/progress", authMiddleware, updateUserProgress);

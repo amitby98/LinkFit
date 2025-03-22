@@ -1,6 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcryptjs";
 
+export interface IProgress {
+  completedDays: number;
+}
+
 export interface IBadge {
   level: number;
   name: string;
@@ -16,8 +20,16 @@ export interface IUser extends Document {
   bio?: string;
   authProvider?: string;
   badges: IBadge[];
+  progress?: IProgress;
   comparePassword(password: string): Promise<boolean>;
 }
+
+const ProgressSchema: Schema = new Schema<IProgress>(
+  {
+    completedDays: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
 
 const BadgeSchema: Schema = new Schema<IBadge>(
   {
@@ -63,8 +75,12 @@ const UserSchema: Schema = new Schema<IUser>(
       default: "local",
     },
     badges: {
-      type: [BadgeSchema], // ⬅️ הוספת שדה הבאג'ים
+      type: [BadgeSchema],
       default: [],
+    },
+    progress: {
+      type: ProgressSchema,
+      default: { completedDays: 0 },
     },
   },
   {
