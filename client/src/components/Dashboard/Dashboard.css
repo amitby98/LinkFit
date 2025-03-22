@@ -300,21 +300,25 @@
 }
 
 /* Badges */
-.badges-container {
+.dashboard-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: center;
 }
 
-.badge {
-  width: 40px;
-  height: 40px;
-  background-color: #f0f2f5;
+.dashboard-badges .dash-badge {
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: white;
   font-size: 18px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-badges .dash-badge:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Activity */
@@ -323,4 +327,89 @@
   text-align: center;
   color: #65676b;
   font-size: 14px;
+}
+
+/* Modal styles for badges */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  padding: 20px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.achievement-badge-large {
+  margin: 20px 0;
+}
+
+.badge-icon-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  color: white;
+}
+
+.modal-button,
+.share-button {
+  display: block;
+  width: 100%;
+  padding: 10px 0;
+  margin-top: 10px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.share-button {
+  background-color: #2196f3;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.modal-button:hover {
+  background-color: #45a049;
+}
+
+.share-button:hover {
+  background-color: #0b7dda;
 }

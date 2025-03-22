@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import { faImage, faPaperPlane, faTrophy, faFire, faBolt, faDumbbell, faCrown, faShare } from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
@@ -40,6 +41,15 @@ interface ChallengeDay {
   exercise?: { name: string };
   muscleGroup?: string;
 }
+interface Badge {
+  id: string;
+  name: string;
+  icon: IconDefinition;
+  requiredDays: number;
+  completed: boolean;
+  color: string;
+  colorDark: string;
+}
 
 const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [newPostText, setNewPostText] = useState("");
@@ -56,6 +66,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [nextChallenge, setNextChallenge] = useState<NextExerciseChallenge | null>(null);
   const [allUsers, setAllUsers] = useState<UserDetails[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userBadges, setUserBadges] = useState<Badge[]>([]);
+  const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
+  const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
+  const [sharedBadgeName, setSharedBadgeName] = useState<string>("");
+  const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const ITEMS_PER_PAGE = 10;
 
   // Load next challenge data from local storage
@@ -137,6 +152,168 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
 
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    const fetchUserBadges = async () => {
+      if (!user?._id) return;
+
+      try {
+        const { data } = await httpService.get(`/user/${user._id}/progress`);
+        const progressData = data as { completedDays: number };
+        let completedDays = progressData.completedDays || 0;
+
+        const token = localStorage.getItem("token");
+        let userId = "";
+
+        if (token) {
+          try {
+            const decoded = JSON.parse(atob(token.split(".")[1]));
+            userId = decoded.id || "";
+          } catch (error) {
+            console.error("Error decoding token:", error);
+          }
+        }
+
+        const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
+        const savedChallenge = localStorage.getItem(storageKey);
+
+        if (savedChallenge) {
+          const parsed = JSON.parse(savedChallenge);
+          const localCompletedDays = parsed.filter((day: { completed: boolean }) => day.completed).length;
+
+          if (localCompletedDays > completedDays) {
+            completedDays = localCompletedDays;
+          }
+        }
+
+        const badges: Badge[] = [
+          {
+            id: "day10",
+            name: "Quick Start",
+            icon: faBolt,
+            requiredDays: 10,
+            completed: completedDays >= 10,
+            color: "#64b5f6",
+            colorDark: "#1e88e5",
+          },
+          {
+            id: "day20",
+            name: "Momentum Builder",
+            icon: faFire,
+            requiredDays: 20,
+            completed: completedDays >= 20,
+            color: "#64b5f6",
+            colorDark: "#1e88e5",
+          },
+          {
+            id: "day30",
+            name: "Habit Former",
+            icon: faDumbbell,
+            requiredDays: 30,
+            completed: completedDays >= 30,
+            color: "#ba68c8",
+            colorDark: "#8e24aa",
+          },
+          {
+            id: "day50",
+            name: "Halfway Hero",
+            icon: faTrophy,
+            requiredDays: 50,
+            completed: completedDays >= 50,
+            color: "#ba68c8",
+            colorDark: "#8e24aa",
+          },
+          {
+            id: "day100",
+            name: "Challenge Champion",
+            icon: faCrown,
+            requiredDays: 100,
+            completed: completedDays >= 100,
+            color: "#ff8a65",
+            colorDark: "#f4511e",
+          },
+        ];
+
+        setUserBadges(badges);
+      } catch (error) {
+        console.error("Error fetching user progress:", error);
+
+        // Fallback to localStorage if server request fails
+        const token = localStorage.getItem("token");
+        let userId = "";
+
+        if (token) {
+          try {
+            const decoded = JSON.parse(atob(token.split(".")[1]));
+            userId = decoded.id || "";
+          } catch (error) {
+            console.error("Error decoding token:", error);
+          }
+        }
+
+        const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
+        const savedChallenge = localStorage.getItem(storageKey);
+
+        if (savedChallenge) {
+          const parsed = JSON.parse(savedChallenge);
+          const completedDays = parsed.filter((day: { completed: boolean }) => day.completed).length;
+
+          // Set badges based on localStorage data
+          const badges: Badge[] = [
+            {
+              id: "day10",
+              name: "Quick Start",
+              icon: faBolt,
+              requiredDays: 10,
+              completed: completedDays >= 10,
+              color: "#64b5f6",
+              colorDark: "#1e88e5",
+            },
+            {
+              id: "day20",
+              name: "Momentum Builder",
+              icon: faFire,
+              requiredDays: 20,
+              completed: completedDays >= 20,
+              color: "#64b5f6",
+              colorDark: "#1e88e5",
+            },
+            {
+              id: "day30",
+              name: "Habit Former",
+              icon: faDumbbell,
+              requiredDays: 30,
+              completed: completedDays >= 30,
+              color: "#ba68c8",
+              colorDark: "#8e24aa",
+            },
+            {
+              id: "day50",
+              name: "Halfway Hero",
+              icon: faTrophy,
+              requiredDays: 50,
+              completed: completedDays >= 50,
+              color: "#ba68c8",
+              colorDark: "#8e24aa",
+            },
+            {
+              id: "day100",
+              name: "Challenge Champion",
+              icon: faCrown,
+              requiredDays: 100,
+              completed: completedDays >= 100,
+              color: "#ff8a65",
+              colorDark: "#f4511e",
+            },
+          ];
+
+          setUserBadges(badges);
+        }
+      }
+    };
+
+    fetchUserBadges();
+  }, [user?._id]);
 
   // Initialize navigate function
   const navigate = useNavigate();
@@ -406,6 +583,132 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
     return "🏆";
   };
 
+  const handleBadgeClick = (badge: Badge) => {
+    if (badge.completed) {
+      setSelectedBadge(badge);
+      setShowBadgeModal(true);
+    }
+  };
+
+  const shareBadge = async (badge: Badge) => {
+    try {
+      const shareMessage = `I just earned the "${badge.name}" badge for completing ${badge.requiredDays} days in my fitness challenge! 🏆 #FitnessGoals`;
+
+      await httpService.post("/post", {
+        body: shareMessage,
+      });
+
+      setSharedBadgeName(badge.name);
+      setShowBadgeModal(false);
+      setShowBadgeSharedModal(true);
+    } catch (error) {
+      console.error("Error sharing badge:", error);
+      setError("Failed to share your achievement. Please try again.");
+    }
+  };
+
+  const BadgeModal = () => {
+    if (!showBadgeModal || !selectedBadge) return null;
+
+    const badgeColor = selectedBadge.color;
+    const badgeColorDark = selectedBadge.colorDark;
+    const glowColor = `rgba(${parseInt(selectedBadge.colorDark.slice(1, 3), 16)}, 
+                           ${parseInt(selectedBadge.colorDark.slice(3, 5), 16)}, 
+                           ${parseInt(selectedBadge.colorDark.slice(5, 7), 16)}, 0.5)`;
+
+    return (
+      <div className='modal-overlay'>
+        <div className='modal-content'>
+          <button className='close-btn' onClick={() => setShowBadgeModal(false)}>
+            ×
+          </button>
+          <h2>ACHIEVEMENT UNLOCKED</h2>
+          <div className='achievement-badge-large'>
+            <div
+              className='badge-icon-large'
+              style={{
+                background: `radial-gradient(circle at 30% 30%, ${badgeColor}, ${badgeColorDark})`,
+                boxShadow: `0 0 15px ${glowColor}`,
+                width: "80px",
+                height: "80px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "20px auto",
+                color: "white",
+                fontSize: "36px",
+              }}>
+              <FontAwesomeIcon icon={selectedBadge.icon} />
+            </div>
+          </div>
+          <h3>{selectedBadge.name}</h3>
+          <p>Completed {selectedBadge.requiredDays} days of exercises</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
+            <button
+              className='modal-button'
+              onClick={() => setShowBadgeModal(false)}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}>
+              Awesome!
+            </button>
+            <button
+              className='share-button'
+              onClick={() => shareBadge(selectedBadge)}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#2196F3",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+              }}>
+              <FontAwesomeIcon icon={faShare} /> Share this achievement
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Badge Shared Modal Component
+  const BadgeSharedModal = () => {
+    if (!showBadgeSharedModal) return null;
+
+    return (
+      <div className='modal-overlay'>
+        <div className='modal-content'>
+          <h2>🎉 Badge Shared Successfully! 🏆</h2>
+          <p>Your "{sharedBadgeName}" badge has been shared with your followers!</p>
+          <button
+            className='modal-button'
+            onClick={() => setShowBadgeSharedModal(false)}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              marginTop: "15px",
+            }}>
+            OK
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className='dashboard-container'>
       <NavBar user={user} />
@@ -563,11 +866,35 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
           {/* Achievements Section */}
           <div className='sidebar-section'>
             <h3>Achievements</h3>
-            <div className='badges-container'>
-              <div className='badge'>🏃</div>
-              <div className='badge'>🏋️</div>
-              <div className='badge'>🚴</div>
-              <div className='badge'>🏅</div>
+            <div className='dashboard-badges'>
+              {userBadges.filter(badge => badge.completed).length > 0 ? (
+                userBadges
+                  .filter(badge => badge.completed)
+                  .map(badge => (
+                    <div
+                      key={badge.id}
+                      className='dash-badge'
+                      title={`${badge.name}: Complete ${badge.requiredDays} days`}
+                      onClick={() => handleBadgeClick(badge)}
+                      style={{
+                        background: `radial-gradient(circle at 30% 30%, ${badge.color}, ${badge.colorDark})`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "42px",
+                        height: "42px",
+                        borderRadius: "50%",
+                        color: "white",
+                        boxShadow: "0 0 8px rgba(0, 0, 0, 0.3)",
+                        cursor: "pointer",
+                        transition: "transform 0.2s, box-shadow 0.2s",
+                      }}>
+                      <FontAwesomeIcon icon={badge.icon} />
+                    </div>
+                  ))
+              ) : (
+                <div style={{ textAlign: "center", color: "#888", fontSize: "14px" }}>Complete exercises to earn badges!</div>
+              )}
             </div>
           </div>
 
@@ -580,6 +907,8 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
           </div>
         </div>
       </div>
+      <BadgeModal />
+      <BadgeSharedModal />
     </div>
   );
 };
