@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserPublicProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges } from "../controllers/user.controller";
+import { getUserPublicProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges, getAllUsers } from "../controllers/user.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
@@ -44,6 +44,22 @@ const upload = multer({
   fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
+
+/**
+ * @swagger
+ * /api/user/all:
+ *   get:
+ *     summary: Get all users
+ *     description: Returns a list of all users with basic information.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       500:
+ *         description: Server error
+ */
+userRouter.get("/all", authMiddleware, getAllUsers);
 
 /**
  * @swagger

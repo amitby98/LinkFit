@@ -157,3 +157,16 @@ export const getUserPublicProfile = async (req: Request, res: Response): Promise
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Get all users - new function
+export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Exclude password and select only necessary fields for display
+    const users = await User.find().select("username profilePicture _id");
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
