@@ -9,6 +9,7 @@ import NavBar from "../NavBar/NavBar";
 import { Post } from "../Post/Post";
 import { IPost } from "../Dashboard/Dashboard";
 import { formatDate } from "../../utils";
+import PostGrid from "../PostGrid/PostGrid";
 
 interface ProfileProps {
   user: UserDetails | undefined;
@@ -448,56 +449,11 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 <FontAwesomeIcon icon={faImage} /> {isViewingOwnProfile ? "My Posts" : "Posts"}
               </h3>
 
-              <div className='posts-grid-container'>
-                {isLoadingPosts ? (
-                  <div className='loading'>Loading posts...</div>
-                ) : posts.length > 0 ? (
-                  user &&
-                  posts.map(post => (
-                    <div className='post-item' key={post._id} onClick={() => handlePostClick(post._id)}>
-                      <div className='grid-post-header'>
-                        <div className='grid-user-info'>
-                          <img src={post.user?.profilePicture || "/default-avatar.png"} alt={`${post.user?.username || "User"}'s profile`} className='grid-post-avatar' />
-                          <span className='grid-username'>{post.user.username}</span>
-                        </div>
-                        <div className='grid-post-date'>{formatDate(post.createdAt)}</div>
-                      </div>
-                      <div className='post-favorite-content'>
-                        {post.image ? (
-                          <img src={post.image} alt={post.body || "Post image"} />
-                        ) : post.body ? (
-                          <div className='text-only-post'>
-                            <p>{post.body}</p>
-                          </div>
-                        ) : (
-                          <div className='empty-post'>
-                            <p>No content</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className='empty-posts'>
-                    <p>{isViewingOwnProfile ? "Nothing here yet — Share your first post and get started!" : "This user hasn't posted anything yet."}</p>
-                  </div>
-                )}
-              </div>
+              <PostGrid user={user} isLoadingUser={isLoadingUser} type='profile' userId={userId} />
             </div>
           </div>
         </div>
 
-        {/* Modal with Post Component */}
-        {selectedPostId && user && (
-          <div className='modal'>
-            <div className='modal-content'>
-              <button className='close-btn' onClick={() => setSelectedPostId(null)}>
-                ×
-              </button>
-              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />
-            </div>
-          </div>
-        )}
         <BadgeSharedModal />
       </div>
     </>
