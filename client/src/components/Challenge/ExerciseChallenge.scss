@@ -3,7 +3,6 @@
   font-family: Arial, sans-serif;
 }
 
-// Header section with title and reset button
 .challenge-header {
   display: flex;
   justify-content: space-between;
@@ -104,6 +103,16 @@
 
     &.completed {
       background-color: #c8e6c9;
+    }
+
+    &.locked {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &.active {
+      border: 2px solid #4caf50;
+      animation: pulse 1.5s infinite;
     }
 
     .day-number {
@@ -331,18 +340,6 @@
   text-align: center;
 }
 
-// Modal animations
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 // Modal styles
 .modal-overlay {
   position: fixed;
@@ -350,21 +347,23 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
 .modal-content {
   background-color: white;
-  border-radius: 8px;
-  padding: 24px;
+  border-radius: 15px;
+  padding: 25px;
   width: 90%;
   max-width: 450px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   animation: fadeInScale 0.3s ease-out;
+  text-align: center;
 
   .modal-header {
     text-align: center;
@@ -372,7 +371,6 @@
 
     .modal-icon {
       font-size: 28px;
-      color: #f44336;
       margin-bottom: 8px;
     }
 
@@ -413,6 +411,155 @@
       background-color: #f44336;
       color: white;
     }
+
+    .continue-button {
+      background-color: #9e9e9e;
+    }
+  }
+}
+
+// Badge Achievement Modal
+.achievement-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+
+  .modal-content-unlocked {
+    max-width: 400px;
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: modalFadeIn 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      background: linear-gradient(45deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 255, 255, 0) 25%, rgba(255, 255, 255, 0) 75%, rgba(255, 215, 0, 0.15) 100%);
+      background-size: 400% 400%;
+      animation: celebrate 3s ease infinite;
+      z-index: -1;
+    }
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+  }
+
+  h3 {
+    margin-top: 15px;
+    color: #333;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 15px 0;
+    color: #555;
+    font-size: 16px;
+  }
+}
+
+.achievement-badge-large {
+  position: relative;
+  margin: 20px auto;
+  width: 120px;
+  height: 120px;
+  animation: badgePulse 2s infinite alternate;
+
+  .badge-icon-large {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .badge-level-indicator {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #f0f0f0;
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.modal-button {
+  background: linear-gradient(90deg, #1e88e5, #64b5f6);
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+  margin-top: 15px;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.share-button-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(90deg, #4285f4, #3367d6);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 20px;
+  margin-top: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+
+  &:hover {
+    background: linear-gradient(90deg, #3367d6, #1a237e);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -424,28 +571,6 @@
   border-radius: 4px;
   font-family: inherit;
   resize: vertical;
-}
-
-.day-item.locked {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.day-item.active {
-  border: 2px solid #4caf50;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-  }
 }
 
 .celebration {
@@ -465,98 +590,58 @@
   margin: 20px 0;
 }
 
-.celebration .modal-icon {
-  font-size: 60px;
-}
-
-.celebration .modal-title {
-  font-size: 32px;
-  color: gold;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  animation: fadeIn 0.4s ease-in-out;
-}
-
-.modal-content {
-  background: linear-gradient(145deg, #ffffff, #eaeaea);
-  padding: 25px;
-  border-radius: 15px;
-  text-align: center;
-  max-width: 400px;
-  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
-  position: relative;
-  border: 2px solid rgba(255, 215, 0, 0.6);
-  animation: popIn 0.3s ease-in-out;
-}
-
-@keyframes popIn {
+// Animations
+@keyframes fadeInScale {
   from {
-    transform: scale(0.8);
     opacity: 0;
+    transform: scale(0.9);
   }
   to {
-    transform: scale(1);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
-.modal-content h2 {
-  font-size: 24px;
-  font-weight: bold;
-  color: #ffd700;
-  text-shadow: 0px 0px 10px rgba(255, 215, 0, 0.6);
-  margin-bottom: 15px;
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
 }
 
-.badge-image {
-  width: 120px;
-  height: 120px;
-  margin: 15px auto;
-  display: block;
-  filter: drop-shadow(0px 5px 15px rgba(255, 215, 0, 0.7));
-  transition: transform 0.3s ease-in-out;
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.badge-image:hover {
-  transform: scale(1.1) rotate(5deg);
+@keyframes badgePulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
 }
 
-// .modal-button {
-//   background: linear-gradient(90deg, #ffcc00, #ff6600);
-//   color: white;
-//   padding: 12px 25px;
-//   border: none;
-//   border-radius: 30px;
-//   cursor: pointer;
-//   font-size: 16px;
-//   font-weight: bold;
-//   box-shadow: 0 5px 15px rgba(255, 165, 0, 0.5);
-//   transition: all 0.3s ease-in-out;
-// }
-
-// .modal-button:hover {
-//   background: linear-gradient(90deg, #ffb700, #ff4500);
-//   transform: scale(1.1);
-// }
-
-// @keyframes fadeIn {
-//   from {
-//     opacity: 0;
-//   }
-//   to {
-//     opacity: 1;
-//   }
-// }
+@keyframes celebrate {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

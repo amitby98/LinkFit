@@ -231,7 +231,7 @@
   font-size: 14px;
   width: 10%;
   justify-content: flex-end;
-  margin-right: 2rem;
+  margin-right: 1rem;
 }
 
 .like-count,
@@ -245,7 +245,7 @@
 .post-actions {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
 .action-btn {

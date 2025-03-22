@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage, faPaperPlane, faPen } from "@fortawesome/free-solid-svg-icons";
+import { faImage, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
@@ -126,7 +126,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
     const fetchUsers = async () => {
       try {
         setLoadingUsers(true);
-        const response = await httpService.get<UserDetails[]>("/user/all"); // שינוי כאן
+        const response = await httpService.get<UserDetails[]>("/user/all");
         setAllUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -437,12 +437,12 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
                 </div>
                 <div className='group-name'>Design Jam Indonesia</div>
               </div>
-              <div className='group-item'>
+              {/* <div className='group-item'>
                 <div className='group-icon' style={{ backgroundColor: "#6244BB", color: "white" }}>
                   T
                 </div>
                 <div className='group-name'>The Design Thinker</div>
-              </div>
+              </div> */}
             </div>
           </div>
 
