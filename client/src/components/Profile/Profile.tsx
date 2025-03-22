@@ -33,6 +33,10 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const navigate = useNavigate();
   const { userId } = useParams();
 
+  const [profileUser, setProfileUser] = useState<UserDetails | null>(null);
+  const [isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
+
+  // Load user data when component mounts or userId changes
   useEffect(() => {
     if (isLoadingUser) {
       return;
@@ -41,9 +45,13 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
     if (targetUserId) {
       fetchUserPosts(targetUserId);
-      setIsViewingOwnProfile(targetUserId === user?._id);
 
-      if (targetUserId !== user?._id) {
+      // Determine if viewing own profile
+      const isOwnProfile = targetUserId === user?._id;
+      setIsViewingOwnProfile(isOwnProfile);
+
+      // If viewing another user's profile, fetch their details
+      if (!isOwnProfile) {
         fetchUserDetails(targetUserId);
       }
     } else {
@@ -51,14 +59,32 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   }, [userId, user, navigate, isLoadingUser]);
 
-  const [profileUser, setProfileUser] = useState<UserDetails | null>(null);
-  const [isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
+  // Add useEffect to refresh when userId changes
+  useEffect(() => {
+    if (userId && user && userId !== user._id && !isLoadingUser) {
+      fetchUserDetails(userId);
+    }
+  }, [userId, user?._id]);
 
+  // Enhanced fetchUserDetails to separately fetch badges
   const fetchUserDetails = async (targetUserId: string) => {
     setIsLoadingProfileUser(true);
     try {
+      // Get the user details
       const { data } = await httpService.get<UserDetails>(`/user/${targetUserId}`);
-      setProfileUser(data);
+
+      // Make sure to fetch badges separately to ensure fresh data
+      const badgesResponse = await httpService.get<{ id: string; name: string; description?: string }[]>(`/user/${targetUserId}/badges`);
+
+      // Separately fetch user progress for badges
+      const progressResponse = await httpService.get(`/user/${targetUserId}/progress`);
+
+      // Merge all the data with the user data
+      setProfileUser({
+        ...data,
+        badges: badgesResponse.data,
+        progress: progressResponse.data as Record<string, unknown>,
+      });
     } catch (error) {
       console.error("Error fetching user details:", error);
       setError("Failed to load user profile");
@@ -70,15 +96,16 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const fetchUserPosts = async (targetUserId?: string) => {
     setIsLoadingPosts(true);
     try {
-      const targetUserId = userId || user?._id;
-      if (!targetUserId) {
+      const targetId = targetUserId || userId || user?._id;
+      if (!targetId) {
         setIsLoadingPosts(false);
         return;
       }
-      const { data } = await httpService.get<IPost[]>(`/post/user/${targetUserId}`);
+      const { data } = await httpService.get<IPost[]>(`/post/user/${targetId}`);
       setPosts(data);
-      // Store whether we're viewing our own profile or someone else's
-      const isOwnProfile = targetUserId === user?._id;
+
+      // Update isViewingOwnProfile flag
+      const isOwnProfile = targetId === user?._id;
       setIsViewingOwnProfile(isOwnProfile);
     } catch (error) {
       console.error("Error fetching user posts:", error);
@@ -218,6 +245,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     return <div className='loading-container'>Loading profile...</div>;
   }
 
+  // Use current user data or fetched profile user data
   const displayUser = isViewingOwnProfile ? user : profileUser;
 
   // Badge Shared Modal Component
@@ -320,10 +348,19 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
         <div className='badges-section'>
           <h3>Achievements</h3>
-          <div className='badges-container'>{isLoadingProfileUser ? <p>Loading badges...</p> : displayUser ? <BadgesSection user={displayUser} /> : <p>No user data available</p>}</div>
+          <div className='badges-container'>
+            {isLoadingProfileUser ? (
+              <p>Loading badges...</p>
+            ) : displayUser ? (
+              // Pass the complete user object to BadgesSection
+              <BadgesSection user={displayUser} />
+            ) : (
+              <p>No user data available</p>
+            )}
+          </div>
         </div>
 
-        {/* Posts Section - Modified to remove favorites tab */}
+        {/* Posts Section */}
         <div className='profile-posts-section'>
           <div className='profile-container'>
             <div className='profile-tabs'>
