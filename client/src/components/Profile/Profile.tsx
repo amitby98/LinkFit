@@ -22,8 +22,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [validationErrors, setValidationErrors] = useState({
     username: "",
     profilePicture: "",
@@ -88,38 +86,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     } finally {
       setIsLoadingPosts(false);
     }
-  };
-
-  const handleLike = async (postId: string) => {
-    try {
-      await httpService.post(`/post/${postId}/like`);
-
-      // Update posts state
-      setPosts(
-        posts.map(post => {
-          if (post._id === postId) {
-            const userId = user?._id || "";
-            // Toggle like
-            if (post.likes.includes(userId)) {
-              return { ...post, likes: post.likes.filter(id => id !== userId) };
-            } else {
-              return { ...post, likes: [...post.likes, userId] };
-            }
-          }
-          return post;
-        })
-      );
-    } catch (error) {
-      console.error("Error liking post:", error);
-      setError("Failed to like post");
-    }
-  };
-
-  const onCommentInputChange = (postId: string, value: string) => {
-    setNewComment(prev => ({
-      ...prev,
-      [postId]: value,
-    }));
   };
 
   const validateProfileData = (): boolean => {
@@ -252,31 +218,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     return <div className='loading-container'>Loading profile...</div>;
   }
 
-  const handleAddComment = async (postId: string) => {
-    if (!newComment[postId]?.trim()) return;
-
-    try {
-      await httpService.post(`/post/${postId}/comment`, {
-        text: newComment[postId],
-      });
-
-      // Clear comment input
-      setNewComment(prev => ({
-        ...prev,
-        [postId]: "",
-      }));
-
-      // Refresh posts to show new comment
-      fetchUserPosts(userId || user?._id);
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      setError("Failed to add comment");
-    }
-  };
-  const handlePostClick = (postId: string) => {
-    setSelectedPostId(postId);
-  };
-
   const displayUser = isViewingOwnProfile ? user : profileUser;
 
   // Badge Shared Modal Component
@@ -295,10 +236,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
       </div>
     );
   };
-
-  function updateSinglePost(updatedPost: IPost): void {
-    setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
-  }
 
   return (
     <>

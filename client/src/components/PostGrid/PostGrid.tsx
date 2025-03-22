@@ -22,11 +22,11 @@ const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
 
   useEffect(() => {
     if (!isLoadingUser && user?._id) {
-      fetchposts();
+      fetchPosts();
     }
   }, [user?._id, isLoadingUser, type, userId]);
 
-  const fetchposts = async () => {
+  const fetchPosts = async () => {
     setIsLoadingPosts(true);
     try {
       if (!user?._id) {
@@ -75,7 +75,7 @@ const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
       if (type === "favorites") {
         const post = posts.find(p => p._id === postId);
         if (post && post.likes.includes(user?._id || "")) {
-          fetchposts();
+          fetchPosts();
         }
       }
     } catch (error) {
@@ -106,7 +106,7 @@ const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
       }));
 
       // Refresh posts to show new comment
-      fetchposts();
+      fetchPosts();
     } catch (error) {
       console.error("Error adding comment:", error);
       setError("Failed to add comment");
@@ -180,7 +180,7 @@ const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
             <button className='close-btn' onClick={() => setSelectedPostId(null)}>
               ×
             </button>
-            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} updateSinglePost={updateSinglePost} refetchPosts={fetchposts} />
+            <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} updateSinglePost={updateSinglePost} refetchPosts={fetchPosts} />
           </div>
         </div>
       )}

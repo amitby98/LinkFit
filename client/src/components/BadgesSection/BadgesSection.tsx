@@ -226,21 +226,6 @@ function BadgesSection({ user }: BadgeSectionProps) {
     fetchUserProgress();
   }, [user?._id]);
 
-  // Function to check if a badge was just earned on this session - we're not using this automatically
-  // but keeping it for manual calls if needed
-  const checkForNewlyEarnedBadge = () => {
-    // Only execute if userProgress is a multiple of 10
-    if (userProgress > 0 && userProgress % 10 === 0) {
-      const badgeIndex = Math.floor(userProgress / 10) - 1;
-      if (badgeIndex >= 0 && badgeIndex < badges.length) {
-        const newBadge = badges[badgeIndex];
-        setSelectedBadge(newBadge);
-        // Don't auto-show in profile page
-        // setShowBadgeModal(true);
-      }
-    }
-  };
-
   // Check for newly earned badge when progress changes
   useEffect(() => {
     if (userProgress > 0 && userProgress % 10 === 0) {
