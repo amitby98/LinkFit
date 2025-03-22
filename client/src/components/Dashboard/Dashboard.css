@@ -1,16 +1,21 @@
-/* Dashboard container */
 .dashboard-container {
   width: 100%;
   min-height: 100vh;
+  background-color: #f7f7f7;
 }
 
-/* Dashboard Content */
 .dashboard-content {
   display: flex;
-  max-width: 1200px;
-  margin: 20px auto;
-  gap: 20px;
+  margin: 30px 15px;
+  gap: 30px;
   padding: 0 15px;
+}
+
+.left-sidebar {
+  flex: 0.2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .main-content {
@@ -21,10 +26,93 @@
 }
 
 .sidebar {
-  flex: 0.3;
+  flex: 0.2;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Styles for groups and friends list */
+.group-section,
+.friends-section {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: scroll;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.section-header-dots {
+  font-weight: bold;
+  color: #65676b;
+  cursor: pointer;
+}
+
+.group-list,
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.group-item,
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 5px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.group-item:hover,
+.friend-item:hover {
+  background-color: #f2f3f5;
+}
+
+.group-icon,
+.friend-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  margin-right: 10px;
+  object-fit: cover;
+  background-color: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.friend-avatar {
+  border-radius: 50%;
+}
+
+.group-name,
+.friend-name {
+  font-size: 14px;
+  color: #333;
+}
+
+.friend-online-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #42b72a;
+  margin-left: auto;
 }
 
 /* Create Post Section */
@@ -180,9 +268,13 @@
 
 /* Challenge Card */
 .challenge-card {
-  padding: 10px;
+  padding: 15px;
   background-color: #f7f8fa;
   border-radius: 6px;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 25px;
 }
 
 .challenge-card h4 {

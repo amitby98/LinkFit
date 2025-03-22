@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage, faPaperPlane, faPen } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom"; // Import Link for navigation
+import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
@@ -54,6 +54,8 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextChallenge, setNextChallenge] = useState<NextExerciseChallenge | null>(null);
+  const [allUsers, setAllUsers] = useState<UserDetails[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
   // Load next challenge data from local storage
@@ -118,6 +120,31 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
       }
     }
   }, []);
+
+  // Fetch all users
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        const response = await httpService.get<UserDetails[]>("/user/all"); // שינוי כאן
+        setAllUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // Initialize navigate function
+  const navigate = useNavigate();
+
+  // Navigate to user profile when clicked
+  const handleUserClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
+  };
 
   const fetchPosts = useCallback(
     async (pageNum: number) => {
@@ -383,6 +410,65 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
     <div className='dashboard-container'>
       <NavBar user={user} />
       <div className='dashboard-content'>
+        {/* Left Sidebar - 20% */}
+        <div className='left-sidebar'>
+          {/* Groups Section */}
+          <div className='group-section'>
+            <div className='section-header'>
+              <h3>MY GROUP</h3>
+              <span className='section-header-dots'>···</span>
+            </div>
+            <div className='group-list'>
+              <div className='group-item'>
+                <div className='group-icon' style={{ backgroundColor: "#8CDCFE" }}>
+                  P
+                </div>
+                <div className='group-name'>Pickolab Studio</div>
+              </div>
+              <div className='group-item'>
+                <div className='group-icon' style={{ backgroundColor: "#1c1c1c", color: "white" }}>
+                  A
+                </div>
+                <div className='group-name'>Aksantara Digital</div>
+              </div>
+              <div className='group-item'>
+                <div className='group-icon' style={{ backgroundColor: "#f0f2f5" }}>
+                  D
+                </div>
+                <div className='group-name'>Design Jam Indonesia</div>
+              </div>
+              <div className='group-item'>
+                <div className='group-icon' style={{ backgroundColor: "#6244BB", color: "white" }}>
+                  T
+                </div>
+                <div className='group-name'>The Design Thinker</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Friends Section */}
+          <div className='friends-section'>
+            <div className='section-header'>
+              <h3>USERS</h3>
+              <span className='section-header-dots'>···</span>
+            </div>
+            <div className='friends-list'>
+              {loadingUsers ? (
+                <div className='loading'>Loading users...</div>
+              ) : allUsers.length > 0 ? (
+                allUsers.map(userItem => (
+                  <div key={userItem._id} className='friend-item' onClick={() => handleUserClick(userItem._id)} style={{ cursor: "pointer" }}>
+                    <img src={userItem.profilePicture || "/default-avatar.png"} alt={userItem.username} className='friend-avatar' />
+                    <div className='friend-name'>{userItem.username}</div>
+                    <div className='friend-online-indicator'></div>
+                  </div>
+                ))
+              ) : (
+                <div className='no-users'>No users found</div>
+              )}
+            </div>
+          </div>
+        </div>
         {/* Main Content Area - 80% */}
         <div className='main-content'>
           {/* Create Post Section */}
@@ -422,8 +508,6 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
 
           {/* Posts Section */}
           <div className='posts-container'>
-            <h2>Recent Posts</h2>
-
             {isLoading && posts.length === 0 && <div className='loading'>Loading posts...</div>}
 
             {!isLoading && posts.length === 0 && (
