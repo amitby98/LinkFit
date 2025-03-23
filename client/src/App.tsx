@@ -32,6 +32,8 @@ export interface UserDetails {
   email: string;
   profilePicture: string;
   _id: string;
+  badges?: { id: string; name: string; description?: string }[];
+  progress?: Record<string, unknown>;
 }
 
 function App() {

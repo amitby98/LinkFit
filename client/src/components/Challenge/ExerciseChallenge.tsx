@@ -53,7 +53,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
   const [currentActiveDay, setCurrentActiveDay] = useState<number>(1);
   const [showCompletionModal, setShowCompletionModal] = useState<boolean>(false);
   const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
-  const [earnedBadge, setEarnedBadge] = useState<{ name: string; icon: string } | null>(null);
+  const [earnedBadge, setEarnedBadge] = useState<{ name: string; icon: string; level?: number } | null>(null);
 
   useEffect(() => {
     initializeChallenge();
@@ -278,8 +278,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
   const BadgeModal = () => {
     if (!showBadgeModal || !earnedBadge) return null;
 
-    // Get badge level from name to determine style
-    const badgeLevel = Math.floor(challengeDays.filter(day => day.completed).length / 10);
+    const badgeLevel = earnedBadge.level || Math.floor(challengeDays.filter(day => day.completed).length / 10);
     let badgeColor = "#64b5f6";
     let badgeColorDark = "#1e88e5";
     let glowColor = "rgba(33, 150, 243, 0.5)";
@@ -367,7 +366,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
 
       try {
         await httpService.post("/user/badges", { badge });
-        setEarnedBadge({ name: badge.name, icon: badge.icon });
+        setEarnedBadge({ name: badge.name, icon: badge.icon, level: badgeLevel });
         setShowBadgeModal(true);
 
         const audio = new Audio("/success-badge.mp3");

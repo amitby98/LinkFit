@@ -32,15 +32,16 @@ function BadgesSection({ user }: BadgeSectionProps) {
   const [sharedBadgeName, setSharedBadgeName] = useState<string>("");
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Define badge data with dynamic completion status
-  const getBadges = (): Badge[] => [
+  const getBadges = (progress: number): Badge[] => [
     {
       id: "day10",
       name: "Quick Start",
       icon: faBolt,
       description: "Completed 10 days of exercises",
-      completed: userProgress >= 10,
+      completed: progress >= 10,
       requiredDays: 10,
       color: "#64b5f6",
       colorDark: "#1e88e5",
@@ -51,7 +52,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Momentum Builder",
       icon: faFire,
       description: "Completed 20 days of exercises",
-      completed: userProgress >= 20,
+      completed: progress >= 20,
       requiredDays: 20,
       color: "#64b5f6",
       colorDark: "#1e88e5",
@@ -62,7 +63,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Habit Former",
       icon: faDumbbell,
       description: "Completed 30 days of exercises",
-      completed: userProgress >= 30,
+      completed: progress >= 30,
       requiredDays: 30,
       color: "#ba68c8",
       colorDark: "#8e24aa",
@@ -73,7 +74,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Consistent Athlete",
       icon: faDumbbell,
       description: "Completed 40 days of exercises",
-      completed: userProgress >= 40,
+      completed: progress >= 40,
       requiredDays: 40,
       color: "#ba68c8",
       colorDark: "#8e24aa",
@@ -84,7 +85,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Halfway Hero",
       icon: faTrophy,
       description: "Completed 50 days of exercises",
-      completed: userProgress >= 50,
+      completed: progress >= 50,
       requiredDays: 50,
       color: "#ba68c8",
       colorDark: "#8e24aa",
@@ -95,7 +96,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Dedication Star",
       icon: faStar,
       description: "Completed 60 days of exercises",
-      completed: userProgress >= 60,
+      completed: progress >= 60,
       requiredDays: 60,
       color: "#ffb74d",
       colorDark: "#ff9800",
@@ -106,7 +107,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Fitness Warrior",
       icon: faBolt,
       description: "Completed 70 days of exercises",
-      completed: userProgress >= 70,
+      completed: progress >= 70,
       requiredDays: 70,
       color: "#ffb74d",
       colorDark: "#ff9800",
@@ -117,7 +118,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Elite Performer",
       icon: faTrophy,
       description: "Completed 80 days of exercises",
-      completed: userProgress >= 80,
+      completed: progress >= 80,
       requiredDays: 80,
       color: "#ffb74d",
       colorDark: "#ff9800",
@@ -128,7 +129,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Transformation Master",
       icon: faStar,
       description: "Completed 90 days of exercises",
-      completed: userProgress >= 90,
+      completed: progress >= 90,
       requiredDays: 90,
       color: "#ff8a65",
       colorDark: "#f4511e",
@@ -139,7 +140,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       name: "Challenge Champion",
       icon: faCrown,
       description: "Completed all 100 days of exercises",
-      completed: userProgress >= 100,
+      completed: progress >= 100,
       requiredDays: 100,
       color: "#ff8a65",
       colorDark: "#f4511e",
@@ -150,15 +151,19 @@ function BadgesSection({ user }: BadgeSectionProps) {
   // Fetch user progress and badges
   useEffect(() => {
     const fetchUserProgress = async () => {
-      if (!user?._id) return;
+      if (!user?._id) {
+        setIsLoading(false);
+        return;
+      }
 
+      setIsLoading(true);
       try {
-        // First try to get the progress from the server
+        // First try to get the progress from the server for the specific user being viewed
         const { data } = await httpService.get(`/user/${user._id}/progress`);
         const progressData = data as { completedDays: number };
         let daysCompleted = progressData.completedDays || 0;
 
-        // Get the user's token and extract userId
+        // Only check local storage if viewing current user, not other profiles
         const token = localStorage.getItem("token");
         let userId = "";
 
@@ -167,31 +172,34 @@ function BadgesSection({ user }: BadgeSectionProps) {
             // Decode the JWT to get the user ID
             const decoded = JSON.parse(atob(token.split(".")[1]));
             userId = decoded.id || "";
+
+            // Only check local storage if we're viewing our own profile
+            if (userId === user._id) {
+              // Check the local storage for challenge progress
+              const storageKey = `exerciseChallenge_${userId}`;
+              const savedChallenge = localStorage.getItem(storageKey);
+
+              if (savedChallenge) {
+                const parsed = JSON.parse(savedChallenge);
+                const localCompletedDays = parsed.filter((day: Day) => day.completed).length;
+
+                // Use the higher value between server and local storage
+                if (localCompletedDays > daysCompleted) {
+                  daysCompleted = localCompletedDays;
+
+                  // We'll update this on server but won't wait for it to avoid re-renders
+                  httpService
+                    .post(`/user/${user._id}/progress`, {
+                      completedDays: localCompletedDays,
+                    })
+                    .catch(updateError => {
+                      console.error("Error updating server progress:", updateError);
+                    });
+                }
+              }
+            }
           } catch (error) {
             console.error("Error decoding token:", error);
-          }
-        }
-
-        // Also check the local storage for challenge progress
-        const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
-        const savedChallenge = localStorage.getItem(storageKey);
-
-        if (savedChallenge) {
-          const parsed = JSON.parse(savedChallenge);
-          const localCompletedDays = parsed.filter((day: Day) => day.completed).length;
-
-          // Use the higher value between server and local storage
-          if (localCompletedDays > daysCompleted) {
-            daysCompleted = localCompletedDays;
-
-            // We'll update this on server but won't wait for it to avoid re-renders
-            httpService
-              .post(`/user/${user._id}/progress`, {
-                completedDays: localCompletedDays,
-              })
-              .catch(updateError => {
-                console.error("Error updating server progress:", updateError);
-              });
           }
         }
 
@@ -199,7 +207,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
       } catch (error) {
         console.error("Error fetching user progress:", error);
 
-        // Fallback to local storage if server request fails
+        // Fallback to local storage if server request fails - but only for current user
         const token = localStorage.getItem("token");
         let userId = "";
 
@@ -207,46 +215,72 @@ function BadgesSection({ user }: BadgeSectionProps) {
           try {
             const decoded = JSON.parse(atob(token.split(".")[1]));
             userId = decoded.id || "";
+
+            // Only use local storage for current user
+            if (userId === user._id) {
+              const storageKey = `exerciseChallenge_${userId}`;
+              const savedChallenge = localStorage.getItem(storageKey);
+
+              if (savedChallenge) {
+                const parsed = JSON.parse(savedChallenge);
+                const completedDays = parsed.filter((day: Day) => day.completed).length;
+                setUserProgress(completedDays);
+              }
+            } else {
+              // For other users' profiles, set progress to 0 if we couldn't fetch it
+              setUserProgress(0);
+            }
           } catch (error) {
             console.error("Error decoding token:", error);
+            setUserProgress(0);
           }
+        } else {
+          setUserProgress(0);
         }
-
-        const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
-        const savedChallenge = localStorage.getItem(storageKey);
-
-        if (savedChallenge) {
-          const parsed = JSON.parse(savedChallenge);
-          const completedDays = parsed.filter((day: Day) => day.completed).length;
-          setUserProgress(completedDays);
-        }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchUserProgress();
-  }, [user?._id]);
+  }, [user?._id]); // Depend on user._id to refetch when viewing different profiles
 
   // Check for newly earned badge when progress changes
   useEffect(() => {
     if (userProgress > 0 && userProgress % 10 === 0) {
       const badgeIndex = Math.floor(userProgress / 10) - 1;
+      const badges = getBadges(userProgress);
+
       if (badgeIndex >= 0 && badgeIndex < badges.length) {
         const newBadge = badges[badgeIndex];
 
-        const badgeKey = `badge_shown_${newBadge.id}`;
-        const badgeAlreadyShown = localStorage.getItem(badgeKey);
+        // Only show badge modal for current user, not when viewing other profiles
+        const token = localStorage.getItem("token");
+        if (token) {
+          try {
+            const decoded = JSON.parse(atob(token.split(".")[1]));
+            const currentUserId = decoded.id || "";
 
-        if (!badgeAlreadyShown) {
-          setSelectedBadge(newBadge);
-          // We're only showing badges in the challenge page now, not profile
-          setShowBadgeModal(true);
-          localStorage.setItem(badgeKey, "true");
+            // Only show badge modal if viewing own profile
+            if (currentUserId === user._id) {
+              const badgeKey = `badge_shown_${newBadge.id}_${currentUserId}`;
+              const badgeAlreadyShown = localStorage.getItem(badgeKey);
+
+              if (!badgeAlreadyShown) {
+                setSelectedBadge(newBadge);
+                setShowBadgeModal(true);
+                localStorage.setItem(badgeKey, "true");
+              }
+            }
+          } catch (error) {
+            console.error("Error decoding token:", error);
+          }
         }
       }
     }
-  }, [userProgress]);
+  }, [userProgress, user?._id]);
 
-  const badges = getBadges();
+  const badges = getBadges(userProgress);
   const nextBadge = badges.find(badge => !badge.completed);
 
   const calculateProgressToNextBadge = () => {
@@ -283,10 +317,9 @@ function BadgesSection({ user }: BadgeSectionProps) {
     }
   };
 
-  // Close the achievement modal
-  //   const closeAchievementModal = () => {
-  //     setSelectedBadge(null);
-  //   };
+  if (isLoading) {
+    return <div className='loading-badges'>Loading achievements...</div>;
+  }
 
   return (
     <div className='badges-section'>
@@ -296,7 +329,7 @@ function BadgesSection({ user }: BadgeSectionProps) {
         ))}
       </div>
 
-      <h3>Your Fitness Journey</h3>
+      <h3>Fitness Journey</h3>
 
       {/* Progress indicator */}
       <div className='next-achievement'>
@@ -351,38 +384,6 @@ function BadgesSection({ user }: BadgeSectionProps) {
           </div>
         </div>
       )}
-
-      {/* Achievement unlock modal */}
-      {/* {selectedBadge && (
-        <div className='modal-overlay achievement-modal'>
-          <div className='modal-content'>
-            <button className='close-modal' onClick={closeAchievementModal}>
-              ×
-            </button>
-            <h2>ACHIEVEMENT UNLOCKED</h2>
-            <div className='achievement-badge-large'>
-              <div
-                className='badge-icon-large'
-                style={{
-                  background: `radial-gradient(circle at 30% 30%, ${selectedBadge.color}, ${selectedBadge.colorDark})`,
-                }}>
-                <FontAwesomeIcon icon={selectedBadge.icon} size='3x' />
-              </div>
-              <div className='badge-level-indicator'>{selectedBadge.requiredDays / 10}</div>
-            </div>
-            <h3>{selectedBadge.name}</h3>
-            <p>{selectedBadge.description}</p>
-            <button
-              className='share-button-large'
-              onClick={e => {
-                shareBadge(selectedBadge, e);
-                closeAchievementModal();
-              }}>
-              <FontAwesomeIcon icon={faShare} /> Share this achievement
-            </button>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }
