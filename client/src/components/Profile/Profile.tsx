@@ -66,7 +66,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   }, [userId, user?._id]);
 
-  // Enhanced fetchUserDetails to separately fetch badges
+  // Separately fetch badges
   const fetchUserDetails = async (targetUserId: string) => {
     setIsLoadingProfileUser(true);
     try {
@@ -273,6 +273,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
         <div className='profile-header'>
           <div className='profile-container'>
             <div className='profile-content'>
+              {/* Profile picture container */}
               <div className='profile-picture-container'>
                 {isViewingOwnProfile && editedProfile ? (
                   <>
@@ -290,25 +291,20 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 )}
               </div>
 
-              <div className='profile-details'>
-                <div className='profile-title'>
-                  <h1>{displayUser?.username}</h1>
-                  {isViewingOwnProfile && (
-                    <div className='profile-actions'>
-                      {editedProfile ? (
-                        <button className='btn edit-btn' onClick={toggleEditMode}>
-                          <FontAwesomeIcon icon={faSave} /> Cancel
-                        </button>
-                      ) : (
-                        <button className='btn edit-btn' onClick={toggleEditMode}>
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+              <div className='profile-actions'>
+                {isViewingOwnProfile && (
+                  <button className='edit-profile-btn edit-btn' onClick={toggleEditMode}>
+                    {editedProfile ? "Cancel" : "Edit Profile"}
+                  </button>
+                )}
+              </div>
 
+              <div className='profile-details'>
                 {error && <div className='error-message'>{error}</div>}
+
+                <div className='profile-title'>
+                  <h1>{displayUser?.username || "Update your username!"}</h1>
+                </div>
 
                 {isViewingOwnProfile && editedProfile ? (
                   <div className='profile-form'>
@@ -321,32 +317,52 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                       <label>Bio</label>
                       <textarea name='bio' value={editedProfile?.bio || ""} onChange={handleInputChange} rows={4} placeholder='Write something about yourself...' />
                     </div>
-                    <button className='btn save-btn' onClick={handleSaveProfile}>
+                    <button className='edit-profile-btn save-btn' onClick={handleSaveProfile}>
                       <FontAwesomeIcon icon={faSave} /> Save Changes
                     </button>
                   </div>
                 ) : (
                   <>
                     <div className='profile-info'>
+                      <p className='profile-email'>{displayUser?.email}</p>
+
                       {displayUser?.bio ? (
                         <div className='bio'>
-                          <h3>Bio</h3>
                           <p>{displayUser?.bio}</p>
                         </div>
                       ) : (
                         <div className='bio'>
-                          <p className='empty-bio'>No bio yet</p>
+                          <p className='empty-bio'>Your bio is empty—let others know who you are!</p>
                         </div>
                       )}
                     </div>
                   </>
                 )}
+
+                {/* Stats section */}
+                <div className='profile-stats'>
+                  <div className='stat-item'>
+                    <div className='stat-number'>{posts.length}</div>
+                    <div className='stat-label'>Posts</div>
+                  </div>
+                  <div className='stat-item'>
+                    <div className='stat-number'>{displayUser?.badges?.length || 0}</div>
+                    <div className='stat-label'>Badges</div>
+                  </div>
+                  <div className='stat-item'>
+                    <div className='stat-number'>{posts.reduce((total, post) => total + post.comments.length, 0)}</div>
+                    <div className='stat-label'>Comments</div>
+                  </div>
+                </div>
+
+                {/* Show more button */}
+                <button className='show-more-btn'>Show more</button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className='badges-section'>
+        <div className='badges-section-profile'>
           <h3>Achievements</h3>
           <div className='badges-container'>
             {isLoadingProfileUser ? (
