@@ -79,15 +79,6 @@
 }
 
 .search-input {
-  width: 100%;
-  padding: 10px 15px 10px 40px;
-  border-radius: 20px;
-  border: none;
-  background-color: rgba(255, 255, 255, 0.15);
-  font-size: 14px;
-  color: white;
-  transition: all 0.3s ease;
-
   &::placeholder {
     color: rgba(255, 255, 255, 0.7);
   }
@@ -292,7 +283,8 @@
     border: 1px solid #e0e0e0;
     background-color: #f5f5f5;
     font-size: 14px;
-    width: 220px;
+    width: 100%;
+    color: black;
     transition: all 0.3s ease;
 
     &:focus {
