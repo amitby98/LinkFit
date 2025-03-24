@@ -11,6 +11,7 @@ import Profile from "./components/Profile/Profile";
 import Dashboard from "./components/Dashboard/Dashboard";
 import ExerciseChallenge from "./components/Challenge/ExerciseChallenge";
 import Favorites from "./components/Favorites/Favorites";
+import Achievements from "./components/Achievements/Achievements";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdZM4I2vlLtKPzIdl810TiFE5UxI6PJ30",
@@ -114,6 +115,7 @@ function App() {
           <Route path='/profile/:userId' element={<Profile user={user} isLoadingUser={isLoadingUser} refetchUser={refetchUser} signOut={signOut} />} />
           <Route path='/dashboard' element={<Dashboard user={user} />} />
           <Route path='/favorites' element={<Favorites user={user} isLoadingUser={isLoadingUser} />} />
+          <Route path='/achievements/:userId?' element={<Achievements user={user} isLoadingUser={isLoadingUser} />} />
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
       </SetErrorContext.Provider>
