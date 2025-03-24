@@ -756,7 +756,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
                 <div className='loading'>Loading users...</div>
               ) : allUsers.length > 0 ? (
                 allUsers.map(userItem => (
-                  <div key={userItem._id} className='friend-item' onClick={() => handleUserClick(userItem._id)} style={{ cursor: "pointer" }}>
+                  <div key={userItem._id} className='friend-item' onClick={() => handleUserClick(userItem._id)}>
                     <img src={userItem.profilePicture || "/default-avatar.png"} alt={userItem.username} className='friend-avatar' />
                     <div className='friend-name'>{userItem.username}</div>
                     <div className='friend-online-indicator'></div>

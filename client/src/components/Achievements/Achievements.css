@@ -87,16 +87,6 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
-.badges-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 30px;
-  margin: 20px 0;
-  width: 100%;
-  max-width: 1000px;
-}
-
 .badge {
   position: relative;
   display: flex;
@@ -170,57 +160,10 @@
   transition: width 0.5s ease;
 }
 
-.badge-icon {
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  color: white;
-  background: linear-gradient(135deg, #ffd700, #ffa500);
-  border-radius: 50%;
-  box-shadow: 0 5px 15px rgba(255, 165, 0, 0.4);
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.badge:hover .badge-icon {
-  transform: scale(1.1);
-  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.6);
-}
-
 .badge-date {
   font-size: 12px;
   color: #888;
   margin-top: 10px;
-}
-
-.share-badge {
-  background: linear-gradient(90deg, #ffd700, #ffa500);
-  color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 5px 15px rgba(255, 165, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.share-badge:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.4);
-}
-
-.share-badge:active {
-  transform: translateY(0);
 }
 
 .badges-categories {
@@ -287,11 +230,6 @@
   font-weight: 700;
   color: #333;
   margin: 10px 0;
-}
-
-.stat-label {
-  color: #666;
-  font-size: 14px;
 }
 
 /* Modal styles */
@@ -424,62 +362,4 @@
 
 .error-message svg {
   margin-right: 10px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .badges-container {
-    gap: 20px;
-  }
-
-  .badge {
-    width: 180px;
-    padding: 25px;
-  }
-}
-
-@media (max-width: 768px) {
-  .achievements-page {
-    padding: 60px 20px;
-  }
-
-  .achievements-header {
-    padding: 40px 20px;
-  }
-
-  .achievements-content {
-    padding: 30px 20px;
-  }
-
-  .achievement-stats {
-    gap: 15px;
-  }
-
-  .stat-card {
-    width: calc(50% - 15px);
-  }
-
-  .badges-container {
-    justify-content: space-around;
-  }
-}
-
-@media (max-width: 480px) {
-  .achievements-header h1 {
-    font-size: 28px;
-  }
-
-  .badge {
-    width: 100%;
-    max-width: 280px;
-  }
-
-  .stat-card {
-    width: 100%;
-    margin-bottom: 15px;
-  }
-
-  .modal-content {
-    padding: 30px 20px;
-  }
 }

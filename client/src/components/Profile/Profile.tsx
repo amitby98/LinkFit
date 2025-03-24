@@ -380,16 +380,14 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
         {/* Posts Section */}
         <div className='profile-posts-section' ref={postsRef}>
-          <div className='profile-container'>
-            <div className='profile-tabs'>
-              <h3 className='tab-title'>
-                <FontAwesomeIcon icon={faImage} />
-                {isViewingOwnProfile ? "My Posts" : `${displayUser?.username}'s Posts`}
-                <span className='subtitle'>{isViewingOwnProfile ? "Content you've shared with the community" : "Content shared with the community"}</span>
-              </h3>
+          <div className='profile-tabs'>
+            <h3 className='tab-title'>
+              <FontAwesomeIcon icon={faImage} />
+              {isViewingOwnProfile ? "My Posts" : `${displayUser?.username}'s Posts`}
+              <span className='subtitle'>{isViewingOwnProfile ? "Content you've shared with the community" : "Content shared with the community"}</span>
+            </h3>
 
-              <PostGrid user={user} isLoadingUser={isLoadingUser} type='profile' userId={userId} />
-            </div>
+            <PostGrid user={user} isLoadingUser={isLoadingUser} type='profile' userId={userId} />
           </div>
         </div>
 
