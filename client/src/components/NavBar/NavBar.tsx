@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell, faSignOutAlt, faSearch, faHome, faBookmark, faDumbbell } from "@fortawesome/free-solid-svg-icons";
+import { faBell, faSignOutAlt, faSearch } from "@fortawesome/free-solid-svg-icons";
 import "./NavBar.scss";
 import { getAuth } from "firebase/auth";
 import { UserDetails } from "../../App";
@@ -11,8 +11,8 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
   const navigate = useNavigate();
   const auth = getAuth();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const location = useLocation();
+
   const handleSignOut = async () => {
     try {
       await auth.signOut();
@@ -35,16 +35,13 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
       </div>
 
       <div className='navbar-center'>
-        <div className='navbar-icons'>
-          <Link to='/dashboard' className={`navbar-icon ${location.pathname === "/dashboard" ? "active" : ""}`}>
-            <FontAwesomeIcon icon={faHome} />
+        <div className='navbar-links'>
+          <Link to='/dashboard' className={`navbar-link ${location.pathname === "/dashboard" ? "active" : ""}`}>
+            HOME
           </Link>
-          <Link to='/exercises' className={`navbar-icon ${location.pathname === "/exercises" ? "active" : ""}`}>
-            <FontAwesomeIcon icon={faDumbbell} />
+          <Link to='/exercises' className={`navbar-link ${location.pathname === "/exercises" ? "active" : ""}`}>
+            CHALLENGE
           </Link>
-          {/* <Link to='/favorites' className={`navbar-icon ${location.pathname === "/favorites" ? "active" : ""}`}>
-            <FontAwesomeIcon icon={faBookmark} />
-          </Link> */}
         </div>
         <div className='navbar-search'>
           <FontAwesomeIcon icon={faSearch} className='search-icon' />
@@ -70,17 +67,13 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
           )}
         </div>
 
-        <div className='navbar-profile' onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
-          <img src={user?.profilePicture || "/default-avatar.png"} alt='Profile' className='profile-image' />
-          <span className='profile-name'>{user?.username}</span>
-          {showProfileDropdown && (
-            <div className='profile-dropdown'>
-              <Link to='/profile'>Profile</Link>
-              <a onClick={handleSignOut}>
-                <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
-              </a>
-            </div>
-          )}
+        <div className='navbar-actions'>
+          <Link to='/profile' className='navbar-action-btn profile-btn'>
+            PROFILE
+          </Link>
+          <button onClick={handleSignOut} className='navbar-action-btn signout-btn'>
+            SIGN OUT
+          </button>
         </div>
       </div>
     </div>
