@@ -188,7 +188,7 @@ const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
       {/* Modal with Post Component */}
       {selectedPostId && user && (
         <div className='modal'>
-          <div className='modal-content'>
+          <div className='post-modal-content'>
             <button className='close-modal' onClick={() => setSelectedPostId(null)}>
               ×
             </button>
