@@ -227,135 +227,90 @@
   font-size: 16px;
 }
 
-/* ///////////////////////////////// */
-/* Modal styling */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #090f2a, #1a1f40);
-  padding: 30px;
+  background-color: white;
+  padding: 40px;
   border-radius: 15px;
-  max-width: 500px;
-  width: 100%;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
   text-align: center;
-  color: white;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .modal-content h2 {
-  margin-bottom: 20px;
   font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
 }
 
 .modal-button {
-  background: linear-gradient(90deg, #1e88e5, #64b5f6);
-  border: none;
+  background: linear-gradient(90deg, #ffd700, #ffa500);
   color: white;
-  padding: 12px 24px;
+  border: none;
   border-radius: 30px;
+  padding: 12px 30px;
   margin-top: 25px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 16px;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .modal-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-/* Achievement modal styling */
-.modal-overlay.achievement-modal .modal-content {
-  max-width: 400px;
+  box-shadow: 0 8px 15px rgba(255, 165, 0, 0.3);
 }
 
 .close-modal {
   position: absolute;
-  top: 10px;
+  top: 15px;
   right: 15px;
-  background: transparent;
+  background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
   font-size: 24px;
+  color: #999;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.achievement-badge-large {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  margin: 20px auto;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(135deg, #1a1f40, #090f2a);
-}
-
-.badge-icon-large {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-}
-
-.badge-level-indicator {
-  position: absolute;
-  bottom: 0;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  background: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #090f2a;
-  font-weight: bold;
-  font-size: 20px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-}
-
-.share-button-large {
-  background: linear-gradient(90deg, #ffcc00, #ff6600);
-  border: none;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 30px;
-  margin-top: 25px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.share-button-large:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+.close-modal:hover {
+  color: #333;
 }
 
 /* Shine effect for completed badges */

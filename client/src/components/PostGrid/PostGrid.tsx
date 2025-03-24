@@ -188,8 +188,8 @@ const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
       {/* Modal with Post Component */}
       {selectedPostId && user && (
         <div className='modal'>
-          <div className='modal-content '>
-            <button className='close-btn' onClick={() => setSelectedPostId(null)}>
+          <div className='modal-content'>
+            <button className='close-modal' onClick={() => setSelectedPostId(null)}>
               ×
             </button>
             <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} updateSinglePost={updateSinglePost} refetchPosts={fetchPosts} />

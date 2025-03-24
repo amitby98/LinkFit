@@ -179,7 +179,6 @@
   font-weight: 600;
 }
 
-/* ////////// */
 .modal {
   position: fixed;
   top: 0;
@@ -193,11 +192,11 @@
   z-index: 1000;
 }
 
-.modal-content {
+.post-modal-content {
   background-color: white;
   padding: 20px;
   border-radius: 8px;
-  max-width: fit-content;
+  width: 50%;
   max-height: 90%;
   overflow-y: auto;
   position: relative;

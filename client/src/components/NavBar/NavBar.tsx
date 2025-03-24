@@ -183,7 +183,7 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
       </div>
 
       <div className='navbar-right'>
-        <div className='navbar-notifications' onClick={() => setShowNotifications(!showNotifications)}>
+        {/* <div className='navbar-notifications' onClick={() => setShowNotifications(!showNotifications)}>
           <FontAwesomeIcon icon={faBell} />
           <span className='notification-badge'>3</span>
           {showNotifications && (
@@ -198,7 +198,7 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         <div className='navbar-actions'>
           <Link to='/profile' className='navbar-action-btn profile-btn'>

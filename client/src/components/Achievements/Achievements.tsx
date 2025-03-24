@@ -151,24 +151,6 @@ function Achievements({ user, isLoadingUser }: AchievementsProps) {
   // Badge Shared Modal Component
   const BadgeSharedModal = () => {
     if (!showBadgeSharedModal) return null;
-
-    return (
-      <div className='modal-overlay'>
-        <div className='modal-content'>
-          <button className='close-modal' onClick={() => setShowBadgeSharedModal(false)}>
-            ×
-          </button>
-          <h2>🎉 Badge Shared Successfully! 🏆</h2>
-          <p>Your achievement has been shared with your followers and friends!</p>
-          <div style={{ marginTop: "20px" }}>
-            <FontAwesomeIcon icon={faFire} style={{ fontSize: "40px", color: "#FFD700" }} />
-          </div>
-          <button className='modal-button' onClick={() => setShowBadgeSharedModal(false)}>
-            Continue
-          </button>
-        </div>
-      </div>
-    );
   };
 
   return (

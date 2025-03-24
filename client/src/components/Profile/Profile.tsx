@@ -28,7 +28,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [posts, setPosts] = useState<IPost[]>([]);
   const [_isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
-  const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -259,23 +258,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   // Use current user data or fetched profile user data
   const displayUser = isViewingOwnProfile ? user : profileUser;
 
-  // Badge Shared Modal Component
-  const BadgeSharedModal = () => {
-    if (!showBadgeSharedModal) return null;
-
-    return (
-      <div className='modal-overlay'>
-        <div className='modal-content'>
-          <h2>🎉 Badge Shared Successfully! 🎖️</h2>
-          <p>Now your friends can see your achievement!</p>
-          <button className='modal-button' onClick={() => setShowBadgeSharedModal(false)}>
-            OK
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <NavBar user={user} />
@@ -390,8 +372,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
             <PostGrid user={user} isLoadingUser={isLoadingUser} type='profile' userId={userId} />
           </div>
         </div>
-
-        <BadgeSharedModal />
       </div>
     </>
   );

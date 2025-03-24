@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage, faPaperPlane, faTrophy, faFire, faBolt, faDumbbell, faCrown, faShare, faBookmark } from "@fortawesome/free-solid-svg-icons";
+import { faImage, faPaperPlane, faTrophy, faFire, faBolt, faDumbbell, faCrown, faShare, faBookmark, faUser } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../NavBar/NavBar";
@@ -623,9 +623,6 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
     return (
       <div className='modal-overlay'>
         <div className='modal-content'>
-          <button className='close-btn' onClick={() => setShowBadgeModal(false)}>
-            ×
-          </button>
           <h2>ACHIEVEMENT UNLOCKED</h2>
           <div className='achievement-badge-large'>
             <div
@@ -737,11 +734,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
                 </div>
                 <div className='group-name'>Favorites</div>
               </div>
-              <div className='group-item'>
-                <div className='group-icon' style={{ backgroundColor: "#1c1c1c", color: "white" }}>
-                  A
+              <div className='group-item profile-item' onClick={() => navigate("/profile")}>
+                <div className='group-icon' style={{ backgroundColor: "rgb(186, 104, 200)", color: "white" }}>
+                  <FontAwesomeIcon icon={faUser} />
                 </div>
-                <div className='group-name'>Aksantara Digital</div>
+                <div className='group-name'>Profile</div>
               </div>
             </div>
           </div>
@@ -824,8 +821,8 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
 
         {selectedPostId && user && (
           <div className='modal'>
-            <div className='modal-content'>
-              <button className='close-btn' onClick={() => setSelectedPostId(null)}>
+            <div className='post-modal-content'>
+              <button className='close-modal' onClick={() => setSelectedPostId(null)}>
                 ×
               </button>
               <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={refreshPosts} updateSinglePost={updateSinglePost} />
@@ -895,12 +892,12 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
           </div>
 
           {/* Latest Activity Section */}
-          <div className='sidebar-section'>
+          {/* <div className='sidebar-section'>
             <h3>Latest Activity</h3>
             <div className='activity-empty'>
               <p>No recent activity</p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       <BadgeModal />

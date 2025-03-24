@@ -38,13 +38,14 @@
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 15px;
+  padding: 10px;
   overflow-y: scroll;
   border-top: 4px solid #4267b2;
 }
 
 .friends-section {
   height: 450px;
+  margin-top: 5px;
 }
 
 .section-header {
@@ -286,12 +287,12 @@
 }
 
 /* Activity */
-.activity-empty {
+/* .activity-empty {
   padding: 15px;
   text-align: center;
   color: #65676b;
   font-size: 14px;
-}
+} */
 
 .achievements-item {
   cursor: pointer;
@@ -367,6 +368,44 @@
 }
 
 .favorites-item .group-name {
+  font-weight: 500;
+  color: #333;
+}
+.profile-item {
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  position: relative;
+}
+
+.profile-item:hover {
+  background-color: rgba(190, 129, 201, 0.317);
+  transform: translateX(5px);
+}
+
+.profile-item::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background-color: rgb(186, 104, 200);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.profile-item:hover::after {
+  opacity: 1;
+}
+
+.profile-item .group-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.profile-item .group-name {
   font-weight: 500;
   color: #333;
 }
@@ -457,96 +496,4 @@
 
 .friend-item:hover .friend-name {
   color: #4267b2;
-}
-
-/* ///////////////////////////////// */
-/* Modal styles for badges */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: #fff;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 90%;
-  padding: 20px;
-  position: relative;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  border: none;
-  background: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: black;
-  padding: 3px 10px;
-}
-.close-btn:hover {
-  color: yellow;
-  border: transparent;
-}
-
-.achievement-badge-large {
-  margin: 20px 0;
-}
-
-.badge-icon-large {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  color: white;
-}
-
-.modal-button,
-.share-button {
-  display: block;
-  width: 100%;
-  padding: 10px 0;
-  margin-top: 10px;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.modal-button {
-  background-color: #4caf50;
-  color: white;
-}
-
-.share-button {
-  background-color: #2196f3;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.modal-button:hover {
-  background-color: #45a049;
-}
-
-.share-button:hover {
-  background-color: #0b7dda;
 }

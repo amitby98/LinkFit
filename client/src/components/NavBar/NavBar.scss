@@ -206,80 +206,80 @@
   gap: 30px;
 }
 
-.navbar-notifications {
-  position: relative;
-  cursor: pointer;
-  font-size: 18px;
-  color: white;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background-color 0.3s;
+// .navbar-notifications {
+//   position: relative;
+//   cursor: pointer;
+//   font-size: 18px;
+//   color: white;
+//   padding: 8px;
+//   border-radius: 50%;
+//   transition: background-color 0.3s;
 
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-  }
-}
+//   &:hover {
+//     background-color: rgba(255, 255, 255, 0.15);
+//   }
+// }
 
-.notification-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background-color: #ff3b5c;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
+// .notification-badge {
+//   position: absolute;
+//   top: -5px;
+//   right: -5px;
+//   background-color: #ff3b5c;
+//   color: white;
+//   font-size: 10px;
+//   font-weight: bold;
+//   width: 18px;
+//   height: 18px;
+//   border-radius: 50%;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+// }
 
-.notifications-dropdown {
-  position: absolute;
-  top: 45px;
-  right: -10px;
-  width: 320px;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
-  padding: 0;
-  z-index: 100;
-  overflow: hidden;
+// .notifications-dropdown {
+//   position: absolute;
+//   top: 45px;
+//   right: -10px;
+//   width: 320px;
+//   background-color: white;
+//   border-radius: 12px;
+//   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+//   padding: 0;
+//   z-index: 100;
+//   overflow: hidden;
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #1877f2, #36a9e0);
-  }
-}
+//   &::before {
+//     content: "";
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     right: 0;
+//     height: 4px;
+//     background: linear-gradient(90deg, #1877f2, #36a9e0);
+//   }
+// }
 
-.notification-item {
-  padding: 15px;
-  border-bottom: 1px solid #f0f2f5;
-  transition: background-color 0.2s;
+// .notification-item {
+//   padding: 15px;
+//   border-bottom: 1px solid #f0f2f5;
+//   transition: background-color 0.2s;
 
-  &:hover {
-    background-color: #f5f7fa;
-  }
+//   &:hover {
+//     background-color: #f5f7fa;
+//   }
 
-  p {
-    margin: 0 0 5px 0;
-    font-size: 14px;
-    color: #333;
-  }
+//   p {
+//     margin: 0 0 5px 0;
+//     font-size: 14px;
+//     color: #333;
+//   }
 
-  span {
-    font-size: 12px;
-    color: #65676b;
-  }
-}
+//   span {
+//     font-size: 12px;
+//     color: #65676b;
+//   }
+// }
 
 .navbar-actions {
   display: flex;

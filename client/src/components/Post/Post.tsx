@@ -373,7 +373,7 @@ export function Post({
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className='modal-overlay'>
+        <div className='post-modal-overlay'>
           <div className='delete-modal'>
             <h3>Delete Post</h3>
             <p>Are you sure you want to delete this post?</p>
@@ -391,7 +391,7 @@ export function Post({
 
       {/* Delete Comment Confirmation Modal */}
       {showDeleteCommentModal && (
-        <div className='modal-overlay'>
+        <div className='post-modal-overlay'>
           <div className='delete-modal'>
             <h3>Delete Comment</h3>
             <p>Are you sure you want to delete this comment?</p>

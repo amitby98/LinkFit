@@ -378,6 +378,9 @@ function BadgesSection({ user }: BadgeSectionProps) {
       {showBadgeSharedModal && (
         <div className='modal-overlay'>
           <div className='modal-content'>
+            <button className='close-modal' onClick={() => setShowBadgeSharedModal(false)}>
+              ×
+            </button>
             <h2>🎉 Badge Shared Successfully! 🏆</h2>
             <p>Your "{sharedBadgeName}" badge has been shared with your followers!</p>
             <button className='modal-button' onClick={() => setShowBadgeSharedModal(false)}>
