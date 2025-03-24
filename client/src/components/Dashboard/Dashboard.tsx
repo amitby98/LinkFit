@@ -318,6 +318,10 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
   // Initialize navigate function
   const navigate = useNavigate();
 
+  const goToAchievements = () => {
+    navigate("/achievements");
+  };
+
   // Navigate to user profile when clicked
   const handleUserClick = (userId: string) => {
     navigate(`/profile/${userId}`);
@@ -722,11 +726,11 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
               <span className='section-header-dots'>···</span>
             </div>
             <div className='group-list'>
-              <div className='group-item'>
-                <div className='group-icon' style={{ backgroundColor: "#8CDCFE" }}>
-                  P
+              <div className='group-item achievements-item' onClick={goToAchievements}>
+                <div className='group-icon' style={{ backgroundColor: "#FFD700" }}>
+                  <FontAwesomeIcon icon={faTrophy} />
                 </div>
-                <div className='group-name'>Pickolab Studio</div>
+                <div className='group-name'>Achievements</div>
               </div>
               <div className='group-item'>
                 <div className='group-icon' style={{ backgroundColor: "#1c1c1c", color: "white" }}>
@@ -795,7 +799,7 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
               {error && <div className='error-message'>{error}</div>}
 
               <div className='post-actions'>
-                <label className='upload-image-btn'>
+                <label className='upload-image-btn-post'>
                   <FontAwesomeIcon icon={faImage} /> Add Photo
                   <input type='file' accept='image/*' onChange={handleFileChange} style={{ display: "none" }} />
                 </label>

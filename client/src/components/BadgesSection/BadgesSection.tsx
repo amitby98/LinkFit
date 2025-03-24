@@ -20,6 +20,8 @@ interface Badge {
 
 interface BadgeSectionProps {
   user: UserDetails;
+  onBadgeClick: (badge: Badge) => void;
+  onShareBadge: () => void;
 }
 
 interface Day {
