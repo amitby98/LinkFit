@@ -112,6 +112,7 @@
   padding: 8px 15px;
   transition: all 0.3s;
   border: none;
+  cursor: pointer;
 }
 
 .edit-btn {

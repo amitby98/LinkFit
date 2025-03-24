@@ -42,9 +42,9 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
           <Link to='/exercises' className={`navbar-icon ${location.pathname === "/exercises" ? "active" : ""}`}>
             <FontAwesomeIcon icon={faDumbbell} />
           </Link>
-          <Link to='/favorites' className={`navbar-icon ${location.pathname === "/favorites" ? "active" : ""}`}>
+          {/* <Link to='/favorites' className={`navbar-icon ${location.pathname === "/favorites" ? "active" : ""}`}>
             <FontAwesomeIcon icon={faBookmark} />
-          </Link>
+          </Link> */}
         </div>
         <div className='navbar-search'>
           <FontAwesomeIcon icon={faSearch} className='search-icon' />
