@@ -34,11 +34,15 @@
   color: black;
 }
 .show-password {
-  color: black;
   text-transform: none;
-  padding: 0.7rem 1rem;
-  font-size: 1rem;
-  border-radius: 40px;
+  border: none;
+  background-color: white;
+  margin-left: auto;
+  margin-right: 120px;
+
+  &:hover {
+    color: #ffc719;
+  }
 }
 
 .container {
@@ -107,14 +111,14 @@
 .title {
   font-size: 2.2rem;
   color: #444;
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 
 .input-field {
   max-width: 380px;
   width: 100%;
   background-color: #f0f0f0;
-  margin: 10px 0;
+  margin: 12px 0;
   height: 55px;
   border-radius: 55px;
   display: flex;
@@ -187,12 +191,12 @@
   text-transform: uppercase;
   font-weight: 600;
   font-size: 1.2rem;
-  margin: 10px 0;
+  margin: 50px 10px 20px 10px;
   cursor: pointer;
   transition: 0.5s;
 
   &:hover {
-    background-color: #333;
+    border: 2px solid #ffc719;
   }
 }
 
@@ -237,7 +241,7 @@
 
   & p {
     font-size: 1.5rem;
-    padding: 0.7rem 0;
+    padding: 0.9rem 4rem;
   }
 }
 
@@ -249,6 +253,8 @@
   font-weight: 600;
   font-size: 1rem;
   padding: 5px 15px;
+  position: relative;
+  top: -10px;
 
   &:hover {
     border: 2px solid #ffc719;
