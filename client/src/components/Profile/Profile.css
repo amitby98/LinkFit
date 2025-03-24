@@ -14,8 +14,9 @@
 
 /* Profile header section (top part) */
 .profile-header {
-  background: linear-gradient(135deg, #ff6b9d, #ff4274);
-  padding: 80px 0 20px;
+  /* background: linear-gradient(135deg, #ff6b9d, #ff4274); */
+  background: linear-gradient(135deg, #6b81ff, #ff4274);
+  padding: 100px 0 0px;
   width: 100%;
   border: none;
 }
@@ -23,7 +24,7 @@
 .profile-content {
   display: flex;
   flex-direction: column;
-  padding: 0px 30px 20px;
+  padding: 0px 30px 40px;
   position: relative;
 }
 
@@ -70,7 +71,7 @@
 .profile-details {
   width: 100%;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 80px;
 }
 
 .profile-title {
@@ -87,15 +88,40 @@
   margin: 0;
 }
 
-.connect-btn,
+.profile-actions {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  padding: 0 20px;
+  z-index: 20;
+}
+
+.edit-btn,
 .message-btn {
   background-color: transparent;
   color: #ff6b9d;
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 14px;
+  font-size: 16px;
   padding: 8px 15px;
+  transition: all 0.3s;
+  border: none;
+}
+
+.edit-btn {
+  position: absolute;
+  left: 30px;
+}
+
+.message-btn {
+  position: absolute;
+  right: 30px;
 }
 
 /* User information display */
@@ -115,7 +141,7 @@
 
 .profile-info .bio {
   color: #555;
-  margin: 20px;
+  margin: 50px;
 }
 
 .empty-bio {
@@ -157,7 +183,7 @@
   border: none;
   border-radius: 30px;
   padding: 12px 30px;
-  margin: 20px auto 10px;
+  margin: 30px auto 10px;
   cursor: pointer;
   font-weight: bold;
   box-shadow: 0 3px 10px rgba(255, 107, 157, 0.3);
@@ -207,11 +233,6 @@
   margin: 20px;
   cursor: pointer;
   font-weight: 500;
-  box-shadow: 0 3px 10px rgba(255, 107, 157, 0.3);
-}
-
-.edit-btn {
-  background-color: black;
 }
 
 .save-btn {

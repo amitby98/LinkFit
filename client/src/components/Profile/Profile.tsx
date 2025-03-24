@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faCamera, faSave, faImage } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCamera, faSave, faImage, faComment } from "@fortawesome/free-solid-svg-icons";
 import "./Profile.css";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
@@ -35,6 +35,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
   const [profileUser, setProfileUser] = useState<UserDetails | null>(null);
   const [isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
+  const postsRef = useRef<HTMLDivElement>(null);
 
   // Load user data when component mounts or userId changes
   useEffect(() => {
@@ -241,6 +242,17 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   };
 
+  const handleNavigateToAchievements = () => {
+    navigate(`/achievements${isViewingOwnProfile ? "" : `/${userId}`}`);
+  };
+
+  const handleShowMoreClick = () => {
+    postsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   if (isLoadingUser) {
     return <div className='loading-container'>Loading profile...</div>;
   }
@@ -292,11 +304,19 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
               </div>
 
               <div className='profile-actions'>
+                <button className='message-btn' onClick={handleNavigateToAchievements}>
+                  <FontAwesomeIcon icon={faComment} /> Achievements
+                </button>
                 {isViewingOwnProfile && (
+                  <button className='edit-btn' onClick={toggleEditMode}>
+                    <FontAwesomeIcon icon={editedProfile ? faSave : faEdit} /> {editedProfile ? "Cancel" : "Edit Profile"}
+                  </button>
+                )}
+                {/* {isViewingOwnProfile && (
                   <button className='edit-profile-btn edit-btn' onClick={toggleEditMode}>
                     {editedProfile ? "Cancel" : "Edit Profile"}
                   </button>
-                )}
+                )} */}
               </div>
 
               <div className='profile-details'>
@@ -356,13 +376,15 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 </div>
 
                 {/* Show more button */}
-                <button className='show-more-btn'>Show more</button>
+                <button className='show-more-btn' onClick={handleShowMoreClick}>
+                  Show more
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className='badges-section-profile'>
+        {/* <div className='badges-section-profile'>
           <h3>Achievements</h3>
           <div className='badges-container'>
             {isLoadingProfileUser ? (
@@ -374,10 +396,10 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
               <p>No user data available</p>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Posts Section */}
-        <div className='profile-posts-section'>
+        <div className='profile-posts-section' ref={postsRef}>
           <div className='profile-container'>
             <div className='profile-tabs'>
               <h3 className='tab-title'>

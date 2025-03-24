@@ -189,7 +189,7 @@
   align-items: center;
 }
 
-.upload-image-btn {
+.upload-image-btn-post {
   display: inline-flex;
   align-items: center;
   padding: 8px 12px;
@@ -200,13 +200,14 @@
   transition: background-color 0.2s;
   background-color: #f0f2f5;
   color: #333;
+  font-size: 500;
 }
 
-.upload-image-btn:hover {
+.upload-image-btn-post:hover {
   background-color: #e4e6eb;
 }
 
-.upload-image-btn svg {
+.upload-image-btn-post svg {
   margin-right: 6px;
   color: #606770;
 }
@@ -412,4 +413,43 @@
 
 .share-button:hover {
   background-color: #0b7dda;
+}
+
+.achievements-item {
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  position: relative;
+}
+
+.achievements-item:hover {
+  background-color: rgba(255, 215, 0, 0.1);
+  transform: translateX(5px);
+}
+
+.achievements-item::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background-color: #ffd700;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.achievements-item:hover::after {
+  opacity: 1;
+}
+
+.achievements-item .group-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.achievements-item .group-name {
+  font-weight: 500;
+  color: #333;
 }

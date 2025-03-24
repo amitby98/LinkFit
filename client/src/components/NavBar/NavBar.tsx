@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell, faSignOutAlt, faSearch, faHome, faTrophy, faBookmark } from "@fortawesome/free-solid-svg-icons";
+import { faBell, faSignOutAlt, faSearch, faHome, faBookmark, faDumbbell } from "@fortawesome/free-solid-svg-icons";
 import "./NavBar.scss";
 import { getAuth } from "firebase/auth";
 import { UserDetails } from "../../App";
@@ -40,7 +40,7 @@ const NavBar = ({ user }: { user: UserDetails | undefined }) => {
             <FontAwesomeIcon icon={faHome} />
           </Link>
           <Link to='/exercises' className={`navbar-icon ${location.pathname === "/exercises" ? "active" : ""}`}>
-            <FontAwesomeIcon icon={faTrophy} />
+            <FontAwesomeIcon icon={faDumbbell} />
           </Link>
           <Link to='/favorites' className={`navbar-icon ${location.pathname === "/favorites" ? "active" : ""}`}>
             <FontAwesomeIcon icon={faBookmark} />
