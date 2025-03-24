@@ -80,7 +80,7 @@ const HomePage = () => {
     opacity: Math.max(0, 1 - scrollPosition / (window.innerHeight * 0.5)),
     transform: `translateY(${scrollPosition * 0.1}px)`,
     transition: "opacity 0.3s ease-out, transform 0.3s ease-out",
-    visibility: scrollPosition > window.innerHeight ? ("hidden" as "hidden") : ("visible" as "visible"),
+    visibility: scrollPosition > window.innerHeight ? ("hidden" as React.CSSProperties["visibility"]) : ("visible" as React.CSSProperties["visibility"]),
   };
 
   const homeViewStyle = {
@@ -163,8 +163,7 @@ const HomePage = () => {
         style={{
           opacity: Math.max(0, 1 - (scrollPosition - 100) / 200),
           transition: "opacity 0.3s ease-out",
-        }}
-      >
+        }}>
         <div className='scroll-indicator'>
           <div className='arrow-container'>
             <div className='arrow'></div>
@@ -298,7 +297,7 @@ const HomePage = () => {
             <ul className='footer-list'>
               <li className='footer-list-item'>
                 <p className='footer-text'>Natali Mizrahi</p>
-                <a href='https://github.com/DannyIsa' target='_blank' rel='noreferrer' className='social-icon'>
+                <a href='https://github.com/natalimizrahi1' target='_blank' rel='noreferrer' className='social-icon'>
                   <FontAwesomeIcon icon={faGithub} />
                 </a>
               </li>
