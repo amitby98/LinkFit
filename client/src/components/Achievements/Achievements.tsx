@@ -189,7 +189,7 @@ function Achievements({ user, isLoadingUser }: AchievementsProps) {
                 <div className='stat-icon'>
                   <FontAwesomeIcon icon={stat.icon} />
                 </div>
-                <div className='stat-number'>{stat.number}</div>
+                <div className='medal-stat-number'>{stat.number}</div>
                 <div className='stat-label'>{stat.label}</div>
               </div>
             ))}

@@ -311,11 +311,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                     <FontAwesomeIcon icon={editedProfile ? faSave : faEdit} /> {editedProfile ? "Cancel" : "Edit Profile"}
                   </button>
                 )}
-                {/* {isViewingOwnProfile && (
-                  <button className='edit-profile-btn edit-btn' onClick={toggleEditMode}>
-                    {editedProfile ? "Cancel" : "Edit Profile"}
-                  </button>
-                )} */}
               </div>
 
               <div className='profile-details'>
@@ -383,26 +378,14 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
           </div>
         </div>
 
-        {/* <div className='badges-section-profile'>
-          <h3>Achievements</h3>
-          <div className='badges-container'>
-            {isLoadingProfileUser ? (
-              <p>Loading badges...</p>
-            ) : displayUser ? (
-              // Pass the complete user object to BadgesSection
-              <BadgesSection user={displayUser} />
-            ) : (
-              <p>No user data available</p>
-            )}
-          </div>
-        </div> */}
-
         {/* Posts Section */}
         <div className='profile-posts-section' ref={postsRef}>
           <div className='profile-container'>
             <div className='profile-tabs'>
               <h3 className='tab-title'>
-                <FontAwesomeIcon icon={faImage} /> {isViewingOwnProfile ? "My Posts" : "Posts"}
+                <FontAwesomeIcon icon={faImage} />
+                {isViewingOwnProfile ? "My Posts" : `${displayUser?.username}'s Posts`}
+                <span className='subtitle'>{isViewingOwnProfile ? "Content you've shared with the community" : "Content shared with the community"}</span>
               </h3>
 
               <PostGrid user={user} isLoadingUser={isLoadingUser} type='profile' userId={userId} />
