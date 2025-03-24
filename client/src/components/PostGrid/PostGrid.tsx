@@ -5,6 +5,8 @@ import { UserDetails } from "../../App";
 import { IPost } from "../Dashboard/Dashboard";
 import { Post } from "../Post/Post";
 import "./PostGrid.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faComment, faHeart } from "@fortawesome/free-solid-svg-icons";
 
 interface FavoritesProps {
   user: UserDetails | undefined;
@@ -163,6 +165,16 @@ const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
                     <p>No content</p>
                   </div>
                 )}
+                <div className='post-stats-overlay'>
+                  <div className='post-stat'>
+                    <FontAwesomeIcon icon={faHeart} />
+                    <span>{post.likes.length}</span>
+                  </div>
+                  <div className='post-stat'>
+                    <FontAwesomeIcon icon={faComment} />
+                    <span>{post.comments.length}</span>
+                  </div>
+                </div>
               </div>
             </div>
           ))

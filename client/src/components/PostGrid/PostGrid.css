@@ -199,3 +199,69 @@
   color: yellow;
   border: transparent;
 }
+
+.post-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.post-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.post-item:hover .post-favorite-content {
+  filter: brightness(0.7);
+}
+
+.post-item:hover .post-favorite-content img {
+  filter: brightness(0.7);
+}
+
+.post-item:hover .post-stats-overlay {
+  opacity: 1;
+}
+
+.post-favorite-content {
+  position: relative;
+  transition: filter 0.3s ease;
+}
+
+.post-stats-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+}
+
+.post-stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.post-stat svg {
+  width: 22px;
+  height: 22px;
+  fill: white;
+}
+
+.post-stat span {
+  font-size: 18px;
+  font-weight: 600;
+}

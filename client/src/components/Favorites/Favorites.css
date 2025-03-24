@@ -1,22 +1,42 @@
 .favorites-header {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
   text-align: center;
-  padding: 20px 0;
+  padding: 30px 0;
+  position: relative;
+  background: linear-gradient(to right, #f8f9fa, #e9ecef);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.favorites-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  border-radius: 3px;
 }
 
 .favorites-header h1 {
-  font-size: 28px;
-  margin-bottom: 10px;
+  font-size: 32px;
+  margin-bottom: 15px;
+  font-weight: 700;
+  color: #333;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .favorites-header p {
   color: #666;
-  font-size: 16px;
+  font-size: 18px;
+  letter-spacing: 0.5px;
 }
+
 .loading {
   text-align: center;
   padding: 40px;
   font-size: 18px;
   color: #666;
 }
-
