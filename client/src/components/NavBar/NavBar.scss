@@ -7,10 +7,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #d7d5d5;
+  background: linear-gradient(90deg, #1877f2, #36a9e0);
   padding: 0 20px;
-  height: 60px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 65px;
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.25);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -25,14 +25,24 @@
 .navbar-logo {
   font-size: 24px;
   font-weight: bold;
-  color: #1877f2;
+  color: white;
   margin-right: 15px;
+
+  img {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
 }
 
 .navbar-separator {
   height: 30px;
   width: 1px;
-  background-color: #ddd;
+  background-color: rgba(255, 255, 255, 0.3);
+  margin: 0 15px;
 }
 
 .navbar-center {
@@ -44,46 +54,99 @@
 .navbar-search {
   position: relative;
   width: 400px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    pointer-events: none;
+  }
 }
 
 .search-icon {
   position: absolute;
-  right: 20px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #65676b;
+  color: white;
+  font-size: 16px;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 10px 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  background-color: #f0f2f5;
+  padding: 10px 15px 10px 40px;
+  border-radius: 20px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.15);
   font-size: 14px;
-}
-
-.navbar-icons {
-  display: flex;
-  gap: 15px;
-}
-
-.navbar-icon {
-  color: #65676b;
-  font-size: 18px;
-  padding: 8px 15px;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-
-.navbar-icon:hover {
-  background-color: #f0f2f5;
-}
-
-.navbar-icon.active {
-  // border-bottom: 3px solid #1877f2;
   color: white;
-  background-color: #1877f2;
+  transition: all 0.3s ease;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  &:focus {
+    background-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    outline: none;
+  }
+}
+
+/* חדש - קישורים טקסטואליים במקום אייקונים */
+.navbar-links {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-link {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: white;
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+
+    &::after {
+      transform: scaleX(1);
+    }
+  }
+
+  &.active {
+    color: #1877f2;
+    background-color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    &::after {
+      background-color: #1877f2;
+      transform: scaleX(1);
+    }
+  }
 }
 
 .navbar-right {
@@ -96,98 +159,118 @@
   position: relative;
   cursor: pointer;
   font-size: 18px;
-  color: #65676b;
+  color: white;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
 }
 
 .notification-badge {
   position: absolute;
   top: -5px;
   right: -5px;
-  background-color: #e41e3f;
+  background-color: #ff3b5c;
   color: white;
   font-size: 10px;
   font-weight: bold;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.notifications-dropdown {
+  position: absolute;
+  top: 45px;
+  right: -10px;
+  width: 320px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  z-index: 100;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1877f2, #36a9e0);
+  }
+}
+
+.notification-item {
+  padding: 15px;
+  border-bottom: 1px solid #f0f2f5;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f5f7fa;
+  }
+
+  p {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #333;
+  }
+
+  span {
+    font-size: 12px;
+    color: #65676b;
+  }
+}
+
+/* חדש - כפתורי פעולה במקום הפרופיל */
+.navbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.navbar-action-btn {
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.notifications-dropdown {
-  position: absolute;
-  top: 40px;
-  right: -10px;
-  width: 300px;
+.profile-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+.signout-btn {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  z-index: 100;
-}
+  color: #1877f2;
 
-.notification-item {
-  padding: 10px;
-  border-bottom: 1px solid #f0f2f5;
-}
-
-.notification-item p {
-  margin: 0 0 5px 0;
-  font-size: 14px;
-}
-
-.notification-item span {
-  font-size: 12px;
-  color: #65676b;
-}
-
-.navbar-profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: relative;
-  cursor: pointer;
-}
-
-.profile-image {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.profile-name {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.profile-dropdown {
-  position: absolute;
-  top: 40px;
-  right: 0;
-  width: 200px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  z-index: 100;
-}
-
-.profile-dropdown a {
-  display: block;
-  padding: 12px 15px;
-  text-decoration: none;
-  color: #050505;
-  font-size: 14px;
-  transition: background-color 0.2s;
-  text-transform: uppercase;
-  box-sizing: border-box;
-  border-bottom: 4px solid transparent;
-}
-
-.profile-dropdown a:hover {
-  background-color: #f0f2f5;
+  &:hover {
+    background-color: #f8f8f8;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .navbar-search {

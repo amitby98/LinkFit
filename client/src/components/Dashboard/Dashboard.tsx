@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage, faPaperPlane, faTrophy, faFire, faBolt, faDumbbell, faCrown, faShare } from "@fortawesome/free-solid-svg-icons";
+import { faImage, faPaperPlane, faTrophy, faFire, faBolt, faDumbbell, faCrown, faShare, faBookmark } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../NavBar/NavBar";
@@ -721,9 +721,8 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
         <div className='left-sidebar'>
           {/* Groups Section */}
           <div className='group-section'>
-            <div className='section-header'>
-              <h3>MY GROUP</h3>
-              <span className='section-header-dots'>···</span>
+            <div className='section-header fitness-themed'>
+              <h3>FITNESS HUB</h3>
             </div>
             <div className='group-list'>
               <div className='group-item achievements-item' onClick={goToAchievements}>
@@ -732,32 +731,25 @@ const Dashboard = ({ user }: { user: UserDetails | undefined }) => {
                 </div>
                 <div className='group-name'>Achievements</div>
               </div>
+              <div className='group-item favorites-item' onClick={() => navigate("/favorites")}>
+                <div className='group-icon' style={{ backgroundColor: "#4267B2", color: "white" }}>
+                  <FontAwesomeIcon icon={faBookmark} />
+                </div>
+                <div className='group-name'>Favorites</div>
+              </div>
               <div className='group-item'>
                 <div className='group-icon' style={{ backgroundColor: "#1c1c1c", color: "white" }}>
                   A
                 </div>
                 <div className='group-name'>Aksantara Digital</div>
               </div>
-              <div className='group-item'>
-                <div className='group-icon' style={{ backgroundColor: "#f0f2f5" }}>
-                  D
-                </div>
-                <div className='group-name'>Design Jam Indonesia</div>
-              </div>
-              {/* <div className='group-item'>
-                <div className='group-icon' style={{ backgroundColor: "#6244BB", color: "white" }}>
-                  T
-                </div>
-                <div className='group-name'>The Design Thinker</div>
-              </div> */}
             </div>
           </div>
 
           {/* Friends Section */}
           <div className='friends-section'>
-            <div className='section-header'>
+            <div className='section-header users-themed'>
               <h3>USERS</h3>
-              <span className='section-header-dots'>···</span>
             </div>
             <div className='friends-list'>
               {loadingUsers ? (
