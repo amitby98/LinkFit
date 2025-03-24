@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const httpService = axios.create({
-  baseURL: "http://localhost:3001/api",
+  baseURL: import.meta.env.MODE === "production" ? "/api" : "http://localhost:3001/api",
 });
 
 httpService.interceptors.request.use(config => {

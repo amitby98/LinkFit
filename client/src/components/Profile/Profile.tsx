@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faCamera, faSave, faImage } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faCamera, faSave, faImage, faComment } from "@fortawesome/free-solid-svg-icons";
 import "./Profile.css";
 import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
 import NavBar from "../NavBar/NavBar";
-import { Post } from "../Post/Post";
 import { IPost } from "../Dashboard/Dashboard";
+import PostGrid from "../PostGrid/PostGrid";
 
 interface ProfileProps {
   user: UserDetails | undefined;
@@ -21,27 +21,21 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [validationErrors, setValidationErrors] = useState({
     username: "",
     profilePicture: "",
   });
   const [posts, setPosts] = useState<IPost[]>([]);
-  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+  const [_isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
-  const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
   const { userId } = useParams();
 
-  interface Badge {
-    name: string;
-    icon: string;
-    level: number;
-  }
+  const [profileUser, setProfileUser] = useState<UserDetails | null>(null);
+  const [_isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
+  const postsRef = useRef<HTMLDivElement>(null);
 
-  const [badges, setBadges] = useState<Badge[]>([]);
-
+  // Load user data when component mounts or userId changes
   useEffect(() => {
     if (isLoadingUser) {
       return;
@@ -50,9 +44,13 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
 
     if (targetUserId) {
       fetchUserPosts(targetUserId);
-      setIsViewingOwnProfile(targetUserId === user?._id);
 
-      if (targetUserId !== user?._id) {
+      // Determine if viewing own profile
+      const isOwnProfile = targetUserId === user?._id;
+      setIsViewingOwnProfile(isOwnProfile);
+
+      // If viewing another user's profile, fetch their details
+      if (!isOwnProfile) {
         fetchUserDetails(targetUserId);
       }
     } else {
@@ -60,14 +58,32 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   }, [userId, user, navigate, isLoadingUser]);
 
-  const [profileUser, setProfileUser] = useState<UserDetails | null>(null);
-  const [isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
+  // Add useEffect to refresh when userId changes
+  useEffect(() => {
+    if (userId && user && userId !== user._id && !isLoadingUser) {
+      fetchUserDetails(userId);
+    }
+  }, [userId, user?._id]);
 
+  // Separately fetch badges
   const fetchUserDetails = async (targetUserId: string) => {
     setIsLoadingProfileUser(true);
     try {
+      // Get the user details
       const { data } = await httpService.get<UserDetails>(`/user/${targetUserId}`);
-      setProfileUser(data);
+
+      // Make sure to fetch badges separately to ensure fresh data
+      const badgesResponse = await httpService.get<{ id: string; name: string; description?: string }[]>(`/user/${targetUserId}/badges`);
+
+      // Separately fetch user progress for badges
+      const progressResponse = await httpService.get(`/user/${targetUserId}/progress`);
+
+      // Merge all the data with the user data
+      setProfileUser({
+        ...data,
+        badges: badgesResponse.data,
+        progress: progressResponse.data as Record<string, unknown>,
+      });
     } catch (error) {
       console.error("Error fetching user details:", error);
       setError("Failed to load user profile");
@@ -76,51 +92,19 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   };
 
-  useEffect(() => {
-    const fetchBadges = async () => {
-      try {
-        const { data } = await httpService.get<Badge[]>(`/user/${user?._id}/badges`);
-        setBadges(data);
-      } catch (error) {
-        console.error("Error fetching badges:", error);
-      }
-    };
-
-    if (user?._id) {
-      fetchBadges();
-    }
-  }, [user]);
-
-  interface ShareBadgeResponse {
-    body: string;
-    image: string;
-  }
-
-  const shareBadge = async (badge: Badge): Promise<void> => {
-    try {
-      await httpService.post<ShareBadgeResponse>("/post", {
-        body: `I just earned the "${badge.name}" badge for completing ${badge.level * 10} days of my challenge! 🏆 #FitnessGoals`,
-        image: badge.icon,
-      });
-
-      setShowBadgeSharedModal(true);
-    } catch (error) {
-      console.error("Error sharing badge:", error);
-    }
-  };
-
   const fetchUserPosts = async (targetUserId?: string) => {
     setIsLoadingPosts(true);
     try {
-      const targetUserId = userId || user?._id;
-      if (!targetUserId) {
+      const targetId = targetUserId || userId || user?._id;
+      if (!targetId) {
         setIsLoadingPosts(false);
         return;
       }
-      const { data } = await httpService.get<IPost[]>(`/post/user/${targetUserId}`);
+      const { data } = await httpService.get<IPost[]>(`/post/user/${targetId}`);
       setPosts(data);
-      // Store whether we're viewing our own profile or someone else's
-      const isOwnProfile = targetUserId === user?._id;
+
+      // Update isViewingOwnProfile flag
+      const isOwnProfile = targetId === user?._id;
       setIsViewingOwnProfile(isOwnProfile);
     } catch (error) {
       console.error("Error fetching user posts:", error);
@@ -128,38 +112,6 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     } finally {
       setIsLoadingPosts(false);
     }
-  };
-
-  const handleLike = async (postId: string) => {
-    try {
-      await httpService.post(`/post/${postId}/like`);
-
-      // Update posts state
-      setPosts(
-        posts.map(post => {
-          if (post._id === postId) {
-            const userId = user?._id || "";
-            // Toggle like
-            if (post.likes.includes(userId)) {
-              return { ...post, likes: post.likes.filter(id => id !== userId) };
-            } else {
-              return { ...post, likes: [...post.likes, userId] };
-            }
-          }
-          return post;
-        })
-      );
-    } catch (error) {
-      console.error("Error liking post:", error);
-      setError("Failed to like post");
-    }
-  };
-
-  const onCommentInputChange = (postId: string, value: string) => {
-    setNewComment(prev => ({
-      ...prev,
-      [postId]: value,
-    }));
   };
 
   const validateProfileData = (): boolean => {
@@ -288,53 +240,23 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     }
   };
 
+  const handleNavigateToAchievements = () => {
+    navigate(`/achievements${isViewingOwnProfile ? "" : `/${userId}`}`);
+  };
+
+  const handleShowMoreClick = () => {
+    postsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   if (isLoadingUser) {
     return <div className='loading-container'>Loading profile...</div>;
   }
 
-  const handleAddComment = async (postId: string) => {
-    if (!newComment[postId]?.trim()) return;
-
-    try {
-      await httpService.post(`/post/${postId}/comment`, {
-        text: newComment[postId],
-      });
-
-      // Clear comment input
-      setNewComment(prev => ({
-        ...prev,
-        [postId]: "",
-      }));
-
-      // Refresh posts to show new comment
-      fetchUserPosts(userId || user?._id);
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      setError("Failed to add comment");
-    }
-  };
-
+  // Use current user data or fetched profile user data
   const displayUser = isViewingOwnProfile ? user : profileUser;
-
-  const BadgeSharedModal = () => {
-    if (!showBadgeSharedModal) return null;
-
-    return (
-      <div className='modal-overlay'>
-        <div className='modal-content'>
-          <h2>🎉 Badge Shared Successfully! 🎖️</h2>
-          <p>Now your friends can see your achievement!</p>
-          <button className='modal-button' onClick={() => setShowBadgeSharedModal(false)}>
-            OK
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  function updateSinglePost(updatedPost: IPost): void {
-    setPosts(prevPosts => prevPosts.map(post => (post._id === updatedPost._id ? updatedPost : post)));
-  }
 
   return (
     <>
@@ -344,6 +266,7 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
         <div className='profile-header'>
           <div className='profile-container'>
             <div className='profile-content'>
+              {/* Profile picture container */}
               <div className='profile-picture-container'>
                 {isViewingOwnProfile && editedProfile ? (
                   <>
@@ -361,25 +284,23 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                 )}
               </div>
 
-              <div className='profile-details'>
-                <div className='profile-title'>
-                  <h1>{displayUser?.username}</h1>
-                  {isViewingOwnProfile && (
-                    <div className='profile-actions'>
-                      {editedProfile ? (
-                        <button className='btn edit-btn' onClick={toggleEditMode}>
-                          <FontAwesomeIcon icon={faSave} /> Cancel
-                        </button>
-                      ) : (
-                        <button className='btn edit-btn' onClick={toggleEditMode}>
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+              <div className='profile-actions'>
+                <button className='message-btn' onClick={handleNavigateToAchievements}>
+                  <FontAwesomeIcon icon={faComment} /> Achievements
+                </button>
+                {isViewingOwnProfile && (
+                  <button className='edit-btn' onClick={toggleEditMode}>
+                    <FontAwesomeIcon icon={editedProfile ? faSave : faEdit} /> {editedProfile ? "Cancel" : "Edit Profile"}
+                  </button>
+                )}
+              </div>
 
+              <div className='profile-details'>
                 {error && <div className='error-message'>{error}</div>}
+
+                <div className='profile-title'>
+                  <h1>{displayUser?.username || "Update your username!"}</h1>
+                </div>
 
                 {isViewingOwnProfile && editedProfile ? (
                   <div className='profile-form'>
@@ -392,85 +313,65 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
                       <label>Bio</label>
                       <textarea name='bio' value={editedProfile?.bio || ""} onChange={handleInputChange} rows={4} placeholder='Write something about yourself...' />
                     </div>
-                    <button className='btn save-btn' onClick={handleSaveProfile}>
+                    <button className='edit-profile-btn save-btn' onClick={handleSaveProfile}>
                       <FontAwesomeIcon icon={faSave} /> Save Changes
                     </button>
                   </div>
                 ) : (
                   <>
                     <div className='profile-info'>
+                      <p className='profile-email'>{displayUser?.email}</p>
+
                       {displayUser?.bio ? (
                         <div className='bio'>
-                          <h3>Bio</h3>
                           <p>{displayUser?.bio}</p>
                         </div>
                       ) : (
                         <div className='bio'>
-                          <p className='empty-bio'>No bio yet</p>
+                          <p className='empty-bio'>Your bio is empty—let others know who you are!</p>
                         </div>
                       )}
                     </div>
                   </>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className='badges-section'>
-          <h3>Achievements</h3>
-          <div className='badges-container'>
-            {badges.length > 0 ? (
-              badges.map((badge, index) => (
-                <div key={index} className='badge'>
-                  <img src={badge.icon} alt={badge.name} className='badge-icon' />
-                  <p>{badge.name}</p>
-                  <button className='share-badge' onClick={() => shareBadge(badge)}>
-                    Share as Post
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p>No badges yet. Start your challenge!</p>
-            )}
-          </div>
-        </div>
-
-        {/* Posts Section - Modified to remove favorites tab */}
-        <div className='profile-posts-section'>
-          <div className='profile-container'>
-            <div className='profile-tabs'>
-              <h3 className='tab-title'>
-                <FontAwesomeIcon icon={faImage} /> {isViewingOwnProfile ? "My Posts" : "Posts"}
-              </h3>
-
-              <div className='posts-container'>
-                {isLoadingPosts ? (
-                  <div className='loading'>Loading posts...</div>
-                ) : posts.length > 0 ? (
-                  user && posts.map(post => <Post key={post._id} post={post} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={false} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />)
-                ) : (
-                  <div className='empty-posts'>
-                    <p>{isViewingOwnProfile ? "Nothing here yet — Share your first post and get started!" : "This user hasn't posted anything yet."}</p>
+                {/* Stats section */}
+                <div className='profile-stats'>
+                  <div className='stat-item'>
+                    <div className='stat-number'>{posts.length}</div>
+                    <div className='stat-label'>Posts</div>
                   </div>
-                )}
+                  <div className='stat-item'>
+                    <div className='stat-number'>{displayUser?.badges?.length || 0}</div>
+                    <div className='stat-label'>Badges</div>
+                  </div>
+                  <div className='stat-item'>
+                    <div className='stat-number'>{posts.reduce((total, post) => total + post.comments.length, 0)}</div>
+                    <div className='stat-label'>Comments</div>
+                  </div>
+                </div>
+
+                {/* Show more button */}
+                <button className='show-more-btn' onClick={handleShowMoreClick}>
+                  Show more
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Modal with Post Component */}
-        {selectedPostId && user && (
-          <div className='modal'>
-            <div className='modal-content'>
-              <button className='close-btn' onClick={() => setSelectedPostId(null)}>
-                ×
-              </button>
-              <Post post={posts.find(p => p._id === selectedPostId)!} setSelectedPostId={setSelectedPostId} user={user} handleAddComment={handleAddComment} onCommentInputChange={onCommentInputChange} showComment={true} newComment={newComment} handleLike={handleLike} refetchPosts={fetchUserPosts} updateSinglePost={updateSinglePost} />
-            </div>
+        {/* Posts Section */}
+        <div className='profile-posts-section' ref={postsRef}>
+          <div className='profile-tabs'>
+            <h3 className='tab-title'>
+              <FontAwesomeIcon icon={faImage} />
+              {isViewingOwnProfile ? "My Posts" : `${displayUser?.username}'s Posts`}
+              <span className='subtitle'>{isViewingOwnProfile ? "Content you've shared with the community" : "Content shared with the community"}</span>
+            </h3>
+
+            <PostGrid user={user} isLoadingUser={isLoadingUser} type='profile' userId={userId} />
           </div>
-        )}
-        <BadgeSharedModal />
+        </div>
       </div>
     </>
   );

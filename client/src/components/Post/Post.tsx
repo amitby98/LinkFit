@@ -39,7 +39,7 @@ export function Post({
   const [editedPost, setEditedPost] = useState(post);
   const navigate = useNavigate();
   const [postImage, setPostImage] = useState<File | null>(null);
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -373,7 +373,7 @@ export function Post({
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className='modal-overlay'>
+        <div className='post-modal-overlay'>
           <div className='delete-modal'>
             <h3>Delete Post</h3>
             <p>Are you sure you want to delete this post?</p>
@@ -391,7 +391,7 @@ export function Post({
 
       {/* Delete Comment Confirmation Modal */}
       {showDeleteCommentModal && (
-        <div className='modal-overlay'>
+        <div className='post-modal-overlay'>
           <div className='delete-modal'>
             <h3>Delete Comment</h3>
             <p>Are you sure you want to delete this comment?</p>

@@ -1,0 +1,340 @@
+.badges-section {
+  padding: 40px 20px;
+  width: 100%;
+  background: linear-gradient(135deg, #090f2a, #1a1f40);
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.badges-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, transparent 40%, #090f2a);
+  z-index: 0;
+}
+
+.badges-section h3 {
+  font-size: 32px;
+  color: white;
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  z-index: 1;
+}
+
+.badge-rays {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ray {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0) 100%);
+}
+
+.ray:nth-child(1) {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+.ray:nth-child(2) {
+  transform: translate(-50%, -50%) rotate(30deg);
+}
+.ray:nth-child(3) {
+  transform: translate(-50%, -50%) rotate(60deg);
+}
+.ray:nth-child(4) {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.ray:nth-child(5) {
+  transform: translate(-50%, -50%) rotate(120deg);
+}
+.ray:nth-child(6) {
+  transform: translate(-50%, -50%) rotate(150deg);
+}
+
+/* Next achievement section */
+.next-achievement {
+  margin: 0 auto 40px;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.next-achievement h4 {
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.achievement-progress {
+  margin-top: 15px;
+}
+
+.badges-progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.badges-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #64b5f6, #1e88e5);
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Achievements grid */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.achievement-badge {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 20px;
+  align-items: center;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.achievement-badge.completed:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-badge.locked {
+  opacity: 0.7;
+  filter: grayscale(70%);
+}
+
+.badge-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+  margin-right: 15px;
+  color: white;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.badge:hover .badge-icon {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.6);
+}
+
+.badge-info {
+  text-align: left;
+  flex: 1;
+}
+
+.badge-info h4 {
+  margin: 0 0 5px;
+  font-size: 18px;
+  color: white;
+}
+
+.badge-info p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.share-badge {
+  background: linear-gradient(90deg, #ffd700, #ffa500);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 5px 15px rgba(255, 165, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.share-badge:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.4);
+}
+
+.share-badge:active {
+  transform: translateY(0);
+}
+
+.badge-completion {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 30px;
+  height: 30px;
+  background: #4caf50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.badge-checkmark {
+  font-size: 16px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background-color: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-content h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.modal-button {
+  background: linear-gradient(90deg, #ffd700, #ffa500);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 30px;
+  margin-top: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.modal-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(255, 165, 0, 0.3);
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-modal:hover {
+  color: #333;
+}
+
+/* Shine effect for completed badges */
+.achievement-badge.completed {
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.achievement-badge.completed::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: rotate(30deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% {
+    transform: scale(0.5) rotate(30deg) translateX(-200%);
+  }
+  100% {
+    transform: scale(0.5) rotate(30deg) translateX(200%);
+  }
+}

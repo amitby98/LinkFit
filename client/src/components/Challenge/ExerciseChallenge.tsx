@@ -1,15 +1,17 @@
 import React, { useRef, useState, useEffect } from "react";
-import axios from "axios";
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
 import AlertModal from "../AlertModal/AlertModal";
 import "./ExerciseChallenge.scss";
 import { UserDetails } from "../../App";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar, faTrophy, faCrown, faFire, faDumbbell, faBolt, faShare } from "@fortawesome/free-solid-svg-icons";
 
 interface Exercise {
   name: string;
   equipment: string;
   gifUrl: string;
+  // instructions: string;
   guidance?: string;
   completed?: boolean;
 }
@@ -50,7 +52,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
   const [currentActiveDay, setCurrentActiveDay] = useState<number>(1);
   const [showCompletionModal, setShowCompletionModal] = useState<boolean>(false);
   const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
-  const [earnedBadge, setEarnedBadge] = useState<{ name: string; icon: string } | null>(null);
+  const [earnedBadge, setEarnedBadge] = useState<{ name: string; icon: string; level?: number } | null>(null);
 
   useEffect(() => {
     initializeChallenge();
@@ -99,7 +101,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
       }
       setCurrentActiveDay(nextDay);
       setSelectedDay(nextDay <= 100 ? nextDay : 100);
-      loadExerciseForDay(nextDay <= 100 ? nextDay : 100, parsed);
+      await loadExerciseForDay(nextDay <= 100 ? nextDay : 100, parsed);
     } else {
       await createNewChallenge(storageKey);
     }
@@ -141,7 +143,9 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     setIsLoadingExercise(true);
     try {
       const muscleGroup = currentDays[dayIndex].muscleGroup || muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
-      const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscleGroup}`);
+      const response = await httpService.get<Exercise[]>(`/exercises/${muscleGroup}`);
+      console.log("Fetched Exercise:", response.data);
+
       const randomIndex = Math.floor(Math.random() * response.data.length);
       const exercise = response.data[randomIndex];
       const updatedDays = [...currentDays];
@@ -190,6 +194,17 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
         return;
       }
 
+      // Stop timer if running
+      if (isRunning && timerInterval.current) {
+        clearInterval(timerInterval.current);
+        timerInterval.current = null;
+        setIsRunning(false);
+      }
+
+      // Check if the day was already completed
+      const wasCompletedBefore = challengeDays[selectedDay - 1].completed;
+
+      // Update day data
       const updatedDays = [...challengeDays];
       updatedDays[selectedDay - 1].completed = true;
       updatedDays[selectedDay - 1].date = new Date().toLocaleDateString();
@@ -211,14 +226,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
         }
       }
 
-      if (isRunning) {
-        if (timerInterval.current) {
-          clearInterval(timerInterval.current);
-          timerInterval.current = null;
-        }
-        setIsRunning(false);
-      }
-
+      // Save updated challenge data to localStorage
       const token = localStorage.getItem("token");
       let userId = "";
 
@@ -234,61 +242,177 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
       const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
       localStorage.setItem(storageKey, JSON.stringify(updatedDays));
 
+      // Prepare share message
       const exercise = updatedDays[selectedDay - 1].exercise;
       const muscleGroup = determineMuscleGroup(exercise?.name || "");
       const emoji = getMuscleGroupEmoji(muscleGroup);
 
       setShareMessage(`${emoji} Day ${selectedDay}/100 Complete! ${emoji}\nI finished "${exercise?.name}" in ${formatTime(timer)}!\n#100DayFitnessChallenge`);
 
-      if (isRunning) {
-        toggleTimer();
-      }
-
+      // Count total completed days
       const completedCount = updatedDays.filter(day => day.completed).length;
-      await awardBadgeIfNeeded(completedCount);
+      const newMilestoneReached = !wasCompletedBefore && completedCount % 10 === 0;
+
+      // Update user progress in the database
+      if (user && user._id) {
+        try {
+          await httpService.post(`/user/${user._id}/progress`, {
+            completedDays: completedCount,
+          });
+          console.log("Updated user progress:", completedCount);
+
+          // Check if a badge milestone has been reached (every 10 days)
+          // Only show badge if we just reached a milestone (not if day was already completed)
+          if (newMilestoneReached) {
+            console.log("New milestone reached:", completedCount);
+            await awardBadgeIfNeeded(completedCount);
+          }
+        } catch (error) {
+          console.error("Error updating progress:", error);
+        }
+      }
     }
   };
 
   const BadgeModal = () => {
     if (!showBadgeModal || !earnedBadge) return null;
 
+    const badgeLevel = earnedBadge.level || Math.floor(challengeDays.filter(day => day.completed).length / 10);
+    let badgeColor = "#64b5f6";
+    let badgeColorDark = "#1e88e5";
+    let glowColor = "rgba(33, 150, 243, 0.5)";
+
+    // Match colors with BadgesSection
+    if (badgeLevel >= 3 && badgeLevel < 6) {
+      badgeColor = "#ba68c8"; // Purple
+      badgeColorDark = "#8e24aa";
+      glowColor = "rgba(156, 39, 176, 0.5)";
+    } else if (badgeLevel >= 6 && badgeLevel < 9) {
+      badgeColor = "#ffb74d"; // Orange
+      badgeColorDark = "#ff9800";
+      glowColor = "rgba(255, 152, 0, 0.5)";
+    } else if (badgeLevel >= 9) {
+      badgeColor = "#ff8a65"; // Red
+      badgeColorDark = "#f4511e";
+      glowColor = "rgba(244, 67, 54, 0.5)";
+    }
+
+    // Determine which icon to use based on badge name
+    let icon;
+    if (earnedBadge.name.includes("Star") || earnedBadge.name.includes("Master")) {
+      icon = <FontAwesomeIcon icon={faStar} size='3x' />;
+    } else if (earnedBadge.name.includes("Trophy") || earnedBadge.name.includes("Hero") || earnedBadge.name.includes("Performer")) {
+      icon = <FontAwesomeIcon icon={faTrophy} size='3x' />;
+    } else if (earnedBadge.name.includes("Champion")) {
+      icon = <FontAwesomeIcon icon={faCrown} size='3x' />;
+    } else if (earnedBadge.name.includes("Fire") || earnedBadge.name.includes("Momentum")) {
+      icon = <FontAwesomeIcon icon={faFire} size='3x' />;
+    } else if (earnedBadge.name.includes("Athlete") || earnedBadge.name.includes("Former")) {
+      icon = <FontAwesomeIcon icon={faDumbbell} size='3x' />;
+    } else {
+      icon = <FontAwesomeIcon icon={faBolt} size='3x' />;
+    }
+
     return (
-      <div className='modal-overlay'>
-        <div className='modal-content'>
-          <h2>Bravo</h2>
-          <img src={earnedBadge.icon} alt={earnedBadge.name} className='badge-image' />
-          <p>{earnedBadge.name}</p>
-          <button onClick={() => setShowBadgeModal(false)} className='modal-button'>
-            close
+      <div className='achievement-modal'>
+        <div className='modal-content-unlocked'>
+          <h2>ACHIEVEMENT UNLOCKED</h2>
+          <div className='achievement-badge-large'>
+            <div
+              className='badge-icon-large'
+              style={{
+                background: `radial-gradient(circle at 30% 30%, ${badgeColor}, ${badgeColorDark})`,
+                boxShadow: `0 0 15px ${glowColor}`,
+              }}>
+              {icon}
+            </div>
+            <div className='badge-level-indicator'>{badgeLevel}</div>
+          </div>
+          <h3>{earnedBadge.name}</h3>
+          <p>Completed {badgeLevel * 10} days of exercises</p>
+          <button className='modal-button' onClick={() => setShowBadgeModal(false)}>
+            Awesome!
+          </button>
+          <button
+            className='share-button-large'
+            onClick={() => {
+              // Close this modal
+              setShowBadgeModal(false);
+              // Prepare share message
+              setEditedShareMessage(`I just earned the "${earnedBadge.name}" badge for completing ${badgeLevel * 10} days in my fitness challenge! 🏆 #FitnessGoals`);
+              // Show the share modal
+              setShowShareModal(true);
+            }}>
+            <FontAwesomeIcon icon={faShare} /> Share this achievement
           </button>
         </div>
       </div>
     );
   };
 
-  //Receiving Budget every 10 days
   const awardBadgeIfNeeded = async (completedDays: number) => {
+    console.log("Checking for badges at completedDays:", completedDays);
+
     if (completedDays % 10 === 0) {
+      console.log("Milestone reached! Awarding badge for", completedDays, "days");
       const badgeLevel = completedDays / 10;
       const badge = {
         level: badgeLevel,
-        name: `Elite ${badgeLevel * 10} Day`,
-        icon: `/badges/badge-${badgeLevel}.png`,
+        name: getBadgeName(badgeLevel),
+        icon: getIconForBadge(badgeLevel),
         achievedAt: new Date().toISOString(),
       };
 
       try {
         await httpService.post("/user/badges", { badge });
-        setEarnedBadge({ name: badge.name, icon: badge.icon });
+        setEarnedBadge({ name: badge.name, icon: badge.icon, level: badgeLevel });
         setShowBadgeModal(true);
+
+        const audio = new Audio("/success-badge.mp3");
+        audio.play().catch(err => console.log("Audio playback error:", err));
+
+        // Also update progress in user data
+        if (user?._id) {
+          await httpService.post(`/user/${user._id}/progress`, {
+            completedDays: completedDays,
+          });
+        }
       } catch (error) {
         console.error("Error awarding badge:", error);
       }
-
-      const audio = new Audio("/success-badge.mp3");
-      audio.play().catch(err => console.log("Audio playback error:", err));
     }
   };
+
+  function getBadgeName(level: number): string {
+    switch (level) {
+      case 1:
+        return "Quick Start";
+      case 2:
+        return "Momentum Builder";
+      case 3:
+        return "Habit Former";
+      case 4:
+        return "Consistent Athlete";
+      case 5:
+        return "Halfway Hero";
+      case 6:
+        return "Dedication Star";
+      case 7:
+        return "Fitness Warrior";
+      case 8:
+        return "Elite Performer";
+      case 9:
+        return "Transformation Master";
+      case 10:
+        return "Challenge Champion";
+      default:
+        return `Level ${level} Badge`;
+    }
+  }
+
+  function getIconForBadge(level: number): string {
+    return `/badges/badge-${level}.png`;
+  }
 
   const selectDay = async (day: number) => {
     const isCompleted = challengeDays[day - 1].completed;
@@ -307,7 +431,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     }
 
     // Otherwise proceed with day selection directly
-    completeSelectDay(day);
+    await completeSelectDay(day);
   };
 
   // This function handles the actual day selection after confirmation
@@ -465,7 +589,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
   };
 
   // Reset challenge when confirmed in the modal
-  const confirmReset = () => {
+  const confirmReset = async () => {
     // Get the current user ID from localStorage
     const token = localStorage.getItem("token");
     let userId = "";
@@ -484,8 +608,23 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
     localStorage.removeItem(storageKey);
 
+    // Reset progress in the database
+    if (user && user._id) {
+      try {
+        await httpService.post(`/user/${user._id}/progress`, {
+          completedDays: 0,
+        });
+        console.log("Reset user progress to 0");
+      } catch (error) {
+        console.error("Error resetting progress:", error);
+      }
+    }
+
+    // Reset current active day
+    setCurrentActiveDay(1);
+
     // Create a new challenge for this user
-    createNewChallenge(storageKey);
+    await createNewChallenge(storageKey);
     resetTimer();
     setShareMessage("");
     setShowResetModal(false);
@@ -505,7 +644,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     if (!exerciseName) return;
 
     try {
-      const response = await httpService.post<{ response: string }>("http://localhost:3001/api/exercises/guidance", { exercise: exerciseName, prompt });
+      const response = await httpService.post<{ response: string }>("/exercises/guidance", { exercise: exerciseName, prompt });
 
       const updatedDays = [...challengeDays];
       if (updatedDays[selectedDay - 1].exercise) {
@@ -548,7 +687,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     );
   };
 
-  const resetDay = () => {
+  const resetDay = async () => {
     if (selectedDay !== null) {
       const updatedDays = [...challengeDays];
       updatedDays[selectedDay - 1].completed = false;
@@ -576,6 +715,33 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
 
       const storageKey = userId ? `exerciseChallenge_${userId}` : "exerciseChallenge_guest";
       localStorage.setItem(storageKey, JSON.stringify(updatedDays));
+
+      // Update the total completed days count
+      const completedCount = updatedDays.filter(day => day.completed).length;
+
+      // Update the progress in the database
+      if (user && user._id) {
+        try {
+          await httpService.post(`/user/${user._id}/progress`, {
+            completedDays: completedCount,
+          });
+          console.log("Updated user progress after reset:", completedCount);
+        } catch (error) {
+          console.error("Error updating progress:", error);
+        }
+      }
+
+      // Update the current active day
+      // If the reset day was before or equal to current active day, we need to recalculate
+      if (selectedDay <= currentActiveDay) {
+        // Find the first incomplete day
+        for (let i = 1; i <= updatedDays.length; i++) {
+          if (!updatedDays[i - 1].completed) {
+            setCurrentActiveDay(i);
+            break;
+          }
+        }
+      }
     }
   };
 

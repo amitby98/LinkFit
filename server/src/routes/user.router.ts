@@ -1,6 +1,6 @@
 import express from "express";
-import { getUserPublicProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges } from "../controllers/user.controller";
-import { authMiddleware } from "../middleware/auth.middleware";
+import { getUserPublicProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges, getAllUsers, getUserProgress, updateUserProgress } from "../controllers/user.controller";
+import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -47,12 +47,28 @@ const upload = multer({
 
 /**
  * @swagger
+ * /api/user/all:
+ *   get:
+ *     summary: Get all users
+ *     description: Returns a list of all users with basic information.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       500:
+ *         description: Server error
+ */
+userRouter.get("/all", authMiddleware, getAllUsers);
+
+/**
+ * @swagger
  * /api/user/update-profile/{userId}:
  *   put:
  *     summary: Update a user's profile
  *     description: Allows an authenticated user to update their profile.
  */
-userRouter.put("/update-profile/:userId", authMiddleware, updateUserProfile);
+userRouter.put("/update-profile/:userId", authMiddleware, (req, res) => updateUserProfile(req as AuthenticatedRequest, res));
 
 /**
  * @swagger
@@ -63,7 +79,7 @@ userRouter.put("/update-profile/:userId", authMiddleware, updateUserProfile);
 userRouter.post(
   "/upload-profile-picture/:userId",
   authMiddleware,
-  (req, res, next) => {
+  (req: any, res: any, next: any) => {
     upload.single("profilePicture")(req, res, err => {
       if (err) {
         if (err instanceof multer.MulterError) {
@@ -78,7 +94,7 @@ userRouter.post(
       next();
     });
   },
-  uploadProfilePicture
+  (req, res) => uploadProfilePicture(req as AuthenticatedRequest, res)
 );
 
 /**
@@ -95,7 +111,7 @@ userRouter.get("/:userId/badges", authMiddleware, getUserBadges);
  *   post:
  *     summary: Add a badge to the user
  */
-userRouter.post("/badges", authMiddleware, addBadge);
+userRouter.post("/badges", authMiddleware, (req, res) => addBadge(req as AuthenticatedRequest, res));
 
 /**
  * @swagger
@@ -124,3 +140,54 @@ userRouter.get("/:userId", authMiddleware, (req, res) => {
   console.log(`GET user profile request for userId: ${req.params.userId}`);
   getUserPublicProfile(req, res);
 });
+/////////////
+
+/**
+ * @swagger
+ * /api/user/{userId}/progress:
+ *   get:
+ *     summary: Get user's progress
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User progress returned
+ *       404:
+ *         description: User not found
+ */
+userRouter.get("/:userId/progress", authMiddleware, getUserProgress);
+
+/**
+ * @swagger
+ * /api/user/{userId}/progress:
+ *   post:
+ *     summary: Update user's progress
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               completedDays:
+ *                 type: number
+ *                 description: Number of completed exercise days
+ *     responses:
+ *       200:
+ *         description: Progress updated successfully
+ *       404:
+ *         description: User not found
+ */
+userRouter.post("/:userId/progress", authMiddleware, updateUserProgress);

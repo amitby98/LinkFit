@@ -1,0 +1,218 @@
+.achievements-page {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+  padding: 80px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.achievements-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 10% 20%, rgba(255, 215, 0, 0.05) 0%, transparent 20%), radial-gradient(circle at 85% 60%, rgba(255, 215, 0, 0.08) 0%, transparent 30%);
+  z-index: 0;
+}
+
+.achievements-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header section */
+.achievements-header {
+  background: white;
+  text-align: center;
+  padding: 50px 20px;
+  margin-bottom: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.achievements-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #ffd700, #ffa500, #ff8c00);
+}
+
+.achievements-icon {
+  font-size: 50px;
+  color: #ffd700;
+  margin-bottom: 20px;
+  transform: rotateY(0deg);
+  transition: transform 0.7s ease-in-out;
+  display: inline-block;
+}
+
+.achievements-header:hover .achievements-icon {
+  transform: rotateY(360deg);
+}
+
+.achievements-header h1 {
+  font-size: 36px;
+  color: #333;
+  margin: 10px 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.achievements-header p {
+  color: #666;
+  font-size: 18px;
+  max-width: 700px;
+  margin: 15px auto 0;
+  line-height: 1.6;
+}
+
+/* Main content */
+.achievements-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  width: 200px;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.badge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(90deg, #ffd700, #ffa500);
+}
+
+.badge:hover {
+  transform: translateY(-15px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.badge.locked {
+  filter: grayscale(100%);
+  opacity: 0.7;
+}
+
+.badge.locked:hover {
+  transform: translateY(-5px);
+}
+
+.badge p {
+  padding: 0;
+  margin-top: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #444;
+  text-align: center;
+}
+
+/* Achievement stats section */
+.achievement-stats {
+  display: flex;
+  gap: 30px;
+  margin: 40px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  width: 220px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 28px;
+  color: #ffd700;
+  margin-bottom: 15px;
+}
+
+.medal-stat-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 10px 0;
+}
+
+/* Loading and error states */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  flex-direction: column;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-message svg {
+  margin-right: 10px;
+}
