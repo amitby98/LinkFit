@@ -32,8 +32,8 @@ function BadgesSection({ user }: BadgeSectionProps) {
   const [userProgress, setUserProgress] = useState<number>(0);
   const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const [sharedBadgeName, setSharedBadgeName] = useState<string>("");
-  const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
-  const [showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
+  const [_selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
+  const [_showBadgeModal, setShowBadgeModal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Define badge data with dynamic completion status

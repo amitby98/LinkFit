@@ -1,7 +1,6 @@
 .badges-section {
-  margin: 50px auto;
   padding: 40px 20px;
-  max-width: 1000px;
+  width: 100%;
   background: linear-gradient(135deg, #090f2a, #1a1f40);
   border-radius: 15px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);

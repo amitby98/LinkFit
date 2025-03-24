@@ -7,7 +7,6 @@ import { httpService } from "../../httpService";
 import { UserDetails } from "../../App";
 import NavBar from "../NavBar/NavBar";
 import { IPost } from "../Dashboard/Dashboard";
-import BadgesSection from "../BadgesSection/BadgesSection";
 import PostGrid from "../PostGrid/PostGrid";
 
 interface ProfileProps {
@@ -27,14 +26,14 @@ function Profile({ user, isLoadingUser, refetchUser }: ProfileProps) {
     profilePicture: "",
   });
   const [posts, setPosts] = useState<IPost[]>([]);
-  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+  const [_isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [isViewingOwnProfile, setIsViewingOwnProfile] = useState(true);
   const [showBadgeSharedModal, setShowBadgeSharedModal] = useState<boolean>(false);
   const navigate = useNavigate();
   const { userId } = useParams();
 
   const [profileUser, setProfileUser] = useState<UserDetails | null>(null);
-  const [isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
+  const [_isLoadingProfileUser, setIsLoadingProfileUser] = useState(false);
   const postsRef = useRef<HTMLDivElement>(null);
 
   // Load user data when component mounts or userId changes

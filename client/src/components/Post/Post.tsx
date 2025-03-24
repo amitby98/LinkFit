@@ -39,7 +39,7 @@ export function Post({
   const [editedPost, setEditedPost] = useState(post);
   const navigate = useNavigate();
   const [postImage, setPostImage] = useState<File | null>(null);
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);

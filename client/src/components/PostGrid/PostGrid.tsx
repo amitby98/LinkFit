@@ -16,7 +16,7 @@ interface FavoritesProps {
 const PostGrid = ({ user, isLoadingUser, type, userId }: FavoritesProps) => {
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [posts, setPosts] = useState<IPost[]>([]);
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 

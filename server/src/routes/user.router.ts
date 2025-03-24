@@ -1,6 +1,6 @@
 import express from "express";
 import { getUserPublicProfile, updateUserProfile, uploadProfilePicture, addBadge, getUserBadges, getAllUsers, getUserProgress, updateUserProgress } from "../controllers/user.controller";
-import { authMiddleware } from "../middleware/auth.middleware";
+import { AuthenticatedRequest, authMiddleware } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -68,7 +68,7 @@ userRouter.get("/all", authMiddleware, getAllUsers);
  *     summary: Update a user's profile
  *     description: Allows an authenticated user to update their profile.
  */
-userRouter.put("/update-profile/:userId", authMiddleware, updateUserProfile);
+userRouter.put("/update-profile/:userId", authMiddleware, (req, res) => updateUserProfile(req as AuthenticatedRequest, res));
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ userRouter.put("/update-profile/:userId", authMiddleware, updateUserProfile);
 userRouter.post(
   "/upload-profile-picture/:userId",
   authMiddleware,
-  (req, res, next) => {
+  (req: any, res: any, next: any) => {
     upload.single("profilePicture")(req, res, err => {
       if (err) {
         if (err instanceof multer.MulterError) {
@@ -94,7 +94,7 @@ userRouter.post(
       next();
     });
   },
-  uploadProfilePicture
+  (req, res) => uploadProfilePicture(req as AuthenticatedRequest, res)
 );
 
 /**
@@ -111,7 +111,7 @@ userRouter.get("/:userId/badges", authMiddleware, getUserBadges);
  *   post:
  *     summary: Add a badge to the user
  */
-userRouter.post("/badges", authMiddleware, addBadge);
+userRouter.post("/badges", authMiddleware, (req, res) => addBadge(req as AuthenticatedRequest, res));
 
 /**
  * @swagger

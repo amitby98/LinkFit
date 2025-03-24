@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faEnvelope, faEye, faUser, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import "./SignUp.scss";
+import { httpService } from "../../httpService";
 
 interface SignUpProps {
   refetchUser: () => Promise<void>;
@@ -79,8 +79,8 @@ function SignUp({ refetchUser }: SignUpProps) {
         const displayName = user.displayName || "";
 
         // Posting to your backend to register the user
-        axios
-          .post(`http://localhost:3001/api/auth/login-with-google`, {
+        httpService
+          .post(`/auth/login-with-google`, {
             email,
             username: displayName,
             authProvider: "google",
@@ -110,8 +110,8 @@ function SignUp({ refetchUser }: SignUpProps) {
 
     refetchUser();
 
-    axios
-      .post(`http://localhost:3001/api/auth/register`, {
+    httpService
+      .post(`/auth/register`, {
         email: emailInput,
         password: passwordInput,
         username: usernameInput,
@@ -135,8 +135,8 @@ function SignUp({ refetchUser }: SignUpProps) {
     }
 
     refetchUser();
-    axios
-      .post(`http://localhost:3001/api/auth/login`, {
+    httpService
+      .post(`/auth/login`, {
         email: emailInput,
         password: passwordInput,
       })

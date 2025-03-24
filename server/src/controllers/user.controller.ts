@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import User from "../models/User.model";
 import fs from "fs";
 import path from "path";
+import { AuthenticatedRequest } from "../middleware/auth.middleware";
 
 // Get user profile
-export const getUserProfile = async (req: Request, res: Response): Promise<void> => {
+export const getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId).select("-password");
@@ -22,7 +23,7 @@ export const getUserProfile = async (req: Request, res: Response): Promise<void>
 };
 
 // Update user profile
-export const updateUserProfile = async (req: Request, res: Response): Promise<void> => {
+export const updateUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
     const { username, bio, profilePicture } = req.body;
@@ -51,7 +52,7 @@ export const updateUserProfile = async (req: Request, res: Response): Promise<vo
 };
 
 //Upload profile picture
-export const uploadProfilePicture = async (req: Request, res: Response): Promise<void> => {
+export const uploadProfilePicture = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
 
@@ -116,7 +117,7 @@ export const getUserBadges = async (req: Request, res: Response): Promise<void> 
 };
 
 // Add a new badge to the user
-export const addBadge = async (req: Request, res: Response): Promise<void> => {
+export const addBadge = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user.id;
     const { badge } = req.body;

@@ -26,7 +26,6 @@ interface Post {
   body: string;
 }
 
-// Add this to the UserDetails interface
 declare module "../../App" {
   interface UserDetails {
     posts?: Post[];

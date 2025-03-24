@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from "react";
-import axios from "axios";
 import NavBar from "../NavBar/NavBar";
 import { httpService } from "../../httpService";
 import AlertModal from "../AlertModal/AlertModal";
@@ -144,7 +143,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     setIsLoadingExercise(true);
     try {
       const muscleGroup = currentDays[dayIndex].muscleGroup || muscleGroups[Math.floor(Math.random() * muscleGroups.length)];
-      const response = await axios.get<Exercise[]>(`http://localhost:3001/api/exercises/${muscleGroup}`);
+      const response = await httpService.get<Exercise[]>(`/exercises/${muscleGroup}`);
       console.log("Fetched Exercise:", response.data);
 
       const randomIndex = Math.floor(Math.random() * response.data.length);
@@ -645,7 +644,7 @@ const ExerciseChallenge: React.FC<ExerciseChallengeProps> = ({ user }) => {
     if (!exerciseName) return;
 
     try {
-      const response = await httpService.post<{ response: string }>("http://localhost:3001/api/exercises/guidance", { exercise: exerciseName, prompt });
+      const response = await httpService.post<{ response: string }>("/exercises/guidance", { exercise: exerciseName, prompt });
 
       const updatedDays = [...challengeDays];
       if (updatedDays[selectedDay - 1].exercise) {
