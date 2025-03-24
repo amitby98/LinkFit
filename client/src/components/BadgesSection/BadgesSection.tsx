@@ -337,8 +337,8 @@ function BadgesSection({ user }: BadgeSectionProps) {
       <div className='next-achievement'>
         <h4>Next Achievement: {nextBadge ? nextBadge.name : "All Achievements Unlocked!"}</h4>
         <div className='achievement-progress'>
-          <div className='progress-bar'>
-            <div className='progress-fill' style={{ width: `${calculateProgressToNextBadge()}%` }}></div>
+          <div className='badges-progress-bar'>
+            <div className='badges-progress-fill' style={{ width: `${calculateProgressToNextBadge()}%` }}></div>
           </div>
           <div className='progress-text'>{nextBadge ? `${userProgress}/${nextBadge.requiredDays} days completed` : "Challenge completed! 100/100 days"}</div>
         </div>
